@@ -14,7 +14,7 @@ sites = lookup_df.siteNamespace.unique()
 
 
 
-variable = st.multiselect("Variable",variables)
+variable = st.multiselect("Variable",variables,default=None)
 site = st.multiselect("Site",sites,sites[0])
 past_days = st.number_input("Days displayed",1,None,1)
 end_time = datetime(*datetime.now().timetuple()[:3]) # Get today's date from start of day (i.e. midnight)
