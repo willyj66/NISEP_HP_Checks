@@ -39,7 +39,7 @@ if 'df' not in st.session_state or st.session_state.site != site or st.session_s
 df = st.session_state.df
 
 # Sidebar selection for variables to display
-display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:-1])  # Exclude 'datetime' and last column if it's not relevant
+display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:])  # Exclude 'datetime' and last column if it's not relevant
 
 # --- Data Processing ---
 if df.empty:
