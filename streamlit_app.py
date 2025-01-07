@@ -28,8 +28,11 @@ past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 end_time = datetime(*datetime.now().timetuple()[:3])  # Get today's date from start of day
 start_time = end_time - timedelta(days=past_days)  # Start time as per selected days
 
-# Fetch the time series data
-df = getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
+# Fetch the time series data and cache
+@st.cache_data
+def cache_timeseries():
+    return getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
+df = cache_timeseries()
 
 # Sidebar selection for variables to display
 display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:-1])  # Exclude 'datetime' and last column if it's not relevant
