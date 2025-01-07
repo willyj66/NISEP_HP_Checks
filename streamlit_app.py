@@ -48,11 +48,11 @@ else:
     df['datetime'] = pd.to_datetime(df['datetime'])  # Ensure 'datetime' is in proper format
 
     # --- Main Content ---
-    st.title("📊 Time Series Data")
+    st.title("📊 NISEP Time Series Data")
 
     # Plotting multiple variables using Plotly
     if display_variable:
-        fig = px.line(df, x='datetime', y=display_variable, title="Time Series Data")
+        fig = px.line(df, x='datetime', y=display_variable, title="Heat pump data over the past "+str(st.session_state.past_days)+" days")
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("Please select at least one variable to plot.")
