@@ -3,7 +3,7 @@ from getNISEPdata import getTimeseries, getLookup
 from datetime import datetime, timedelta
 import plotly.express as px
 import pandas as pd
-
+st.set_page_config(layout="wide")
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
