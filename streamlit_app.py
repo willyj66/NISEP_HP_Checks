@@ -12,9 +12,10 @@ lookup_df = cache_lookup()
 variables = lookup_df.name.unique()
 sites = lookup_df.siteNamespace.unique()
 site = st.multiselect("Site",sites,sites[0])
+variable = None
 past_days = st.number_input("Days displayed",1,None,1)
 end_time = datetime(*datetime.now().timetuple()[:3]) # Get today's date from start of day (i.e. midnight)
 start_time = end_time - timedelta(days = past_days) # Look at last day's worth of data
-df = getTimeseries(end_time,start_time,site,variable=None,auth_url, username, password)
+df = getTimeseries(end_time,start_time,site,variable,auth_url, username, password)
 
 st.dataframe(df)
