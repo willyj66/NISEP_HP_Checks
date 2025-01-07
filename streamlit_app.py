@@ -66,4 +66,4 @@ else:
 
     # --- Raw Data Preview ---
     with st.expander("🗂️ Show Raw Data"):
-        st.dataframe(df.tail(10))  # Show last 10 rows of the data
+        st.dataframe(df)  # Show last 10 rows of the data
