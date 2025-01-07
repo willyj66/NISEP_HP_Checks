@@ -16,7 +16,7 @@ sites = lookup_df.siteNamespace.unique()
 
 variable = st.multiselect("Variable",variables)
 site = st.multiselect("Site",sites,sites[0])
-
+past_days = st.number_input("Days displayed",1,None,1)
 end_time = datetime(*datetime.now().timetuple()[:3]) # Get today's date from start of day (i.e. midnight)
 start_time = end_time - timedelta(days = 1) # Look at last day's worth of data
 df = getTimeseries(end_time,start_time,site,variable,auth_url, username, password)
