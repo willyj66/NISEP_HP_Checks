@@ -315,7 +315,7 @@ def getTimeseries(end_time,start_time,site,variable, auth_url, username, passwor
         for col in timeseries_df.columns for num in [col.split('(')[-1].split(')')[0] if '(' in col else '']
     ]
     # Make column names unique
-    df.columns = pd.Series(timeseries_df.columns).where(~pd.Series(timeseries_df.columns).duplicated(), 
+    timeseries_df.columns = pd.Series(timeseries_df.columns).where(~pd.Series(timeseries_df.columns).duplicated(), 
                                              pd.Series(timeseries_df.columns) + '_' + pd.Series(timeseries_df.columns).duplicated().cumsum().astype(str))
 
     return timeseries_df
