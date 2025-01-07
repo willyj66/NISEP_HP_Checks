@@ -41,13 +41,13 @@ else:
     st.title("📊 Time Series Data")
 
     # Plot using Plotly
-    fig = px.line(df, x='datetime', y=variable, title="Time Series Data")
+    fig = px.line(df, x='datetime', y=display_variable, title="Time Series Data")
     st.plotly_chart(fig, use_container_width=True)
 
     # --- Quick Metrics Section ---
-    latest_value = df[variable].iloc[-1] if not df.empty else "N/A"
+    latest_value = df[display_variable].iloc[-1] if not df.empty else "N/A"
     st.subheader("🔍 Quick Metrics")
-    st.metric(label=f"Latest {variable}", value=latest_value)
+    st.metric(label=f"Latest {display_variable}", value=latest_value)
 
     # --- Raw Data Preview ---
     with st.expander("🗂️ Show Raw Data"):
