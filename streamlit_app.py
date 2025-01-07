@@ -21,7 +21,7 @@ sites = lookup_df.siteNamespace.unique()
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 site = st.sidebar.multiselect("Select Site", sites, sites[0])
-variable = None#st.sidebar.selectbox("Select Variable", variables)  # Select a variable from the lookup
+variable = st.sidebar.selectbox("Select Variable", variables)  # Select a variable from the lookup
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 
 # Calculate start and end time
@@ -29,7 +29,7 @@ end_time = datetime(*datetime.now().timetuple()[:3])  # Get today's date from st
 start_time = end_time - timedelta(days=past_days)  # Start time as per selected days
 
 # Fetch the time series data
-df = getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
+df = getTimeseries(end_time, start_time, site, None, auth_url, username, password)
 
 # --- Data Processing ---
 if df.empty:
