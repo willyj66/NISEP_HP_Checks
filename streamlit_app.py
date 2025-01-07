@@ -54,8 +54,8 @@ else:
     if display_variable:
         st.subheader("🔍 Quick Metrics")
         for var in display_variable:
-            latest_value = df[var].iloc[-1] if not df.empty else "N/A"
-            st.metric(label=f"Latest {var}", value=latest_value)
+            mean_value = df[var].mean() if not df.empty else "N/A"
+            st.metric(label=f"Average {var}", value=mean_value)
 
     # --- Raw Data Preview ---
     with st.expander("🗂️ Show Raw Data"):
