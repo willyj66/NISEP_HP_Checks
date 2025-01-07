@@ -13,4 +13,4 @@ username = st.secrets.get("Login", {}).get("Username", "")
 password = st.secrets.get("Login", {}).get("Password", "")
 df = getTimeseries(end_time,start_time,site,variable,auth_url, username, password)
 
-#st.dataframe(df)
+st.dataframe(df)

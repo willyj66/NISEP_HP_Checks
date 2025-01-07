@@ -314,4 +314,6 @@ def getTimeseries(end_time,start_time,site,variable, auth_url, username, passwor
         col.split('(')[0].strip() + f" ({mapping[num]})" if '(' in col and num in mapping else col
         for col in timeseries_df.columns for num in [col.split('(')[-1].split(')')[0] if '(' in col else '']
     ]
+    timeseries_df.columns = pd.io.parsers.ParserBase({'names': timeseries_df.columns})._maybe_dedup_names()
+
     return timeseries_df
