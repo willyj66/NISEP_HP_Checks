@@ -21,16 +21,19 @@ sites = lookup_df.siteNamespace.unique()
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 site = st.sidebar.multiselect("Select Site", sites, sites[0])
-variable = None # None for downloading all
+variable = None  # None for downloading all
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 
 # Calculate start and end time
 end_time = datetime(*datetime.now().timetuple()[:3])  # Get today's date from start of day
 start_time = end_time - timedelta(days=past_days)  # Start time as per selected days
+
 # Fetch the time series data
 df = getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
 
-display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:-1])  # Select a variable from the lookup
+# Sidebar selection for variables to display
+display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:-1])  # Exclude 'datetime' and last column if it's not relevant
+
 # --- Data Processing ---
 if df.empty:
     st.warning("No data available for the selected parameters.")
@@ -40,14 +43,19 @@ else:
     # --- Main Content ---
     st.title("📊 Time Series Data")
 
-    # Plot using Plotly
-    fig = px.line(df, x='datetime', y=display_variable, title="Time Series Data")
-    st.plotly_chart(fig, use_container_width=True)
+    # Plotting multiple variables using Plotly
+    if display_variable:
+        fig = px.line(df, x='datetime', y=display_variable, title="Time Series Data")
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Please select at least one variable to plot.")
 
     # --- Quick Metrics Section ---
-    latest_value = df[display_variable].iloc[-1] if not df.empty else "N/A"
-    st.subheader("🔍 Quick Metrics")
-    st.metric(label=f"Latest {display_variable}", value=latest_value)
+    if display_variable:
+        st.subheader("🔍 Quick Metrics")
+        for var in display_variable:
+            latest_value = df[var].iloc[-1] if not df.empty else "N/A"
+            st.metric(label=f"Latest {var}", value=latest_value)
 
     # --- Raw Data Preview ---
     with st.expander("🗂️ Show Raw Data"):
