@@ -30,7 +30,7 @@ start_time = end_time - timedelta(days=past_days)  # Start time as per selected 
 # Fetch the time series data
 df = getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
 
-display_variable = st.sidebar.selectbox("Select Variable", df.columns[1:-1])  # Select a variable from the lookup
+display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:-1])  # Select a variable from the lookup
 # --- Data Processing ---
 if df.empty:
     st.warning("No data available for the selected parameters.")
