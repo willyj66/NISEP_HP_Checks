@@ -24,15 +24,19 @@ site = st.sidebar.multiselect("Select Site", sites, sites[0])
 variable = None  # None for downloading all
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 
-# Calculate start and end time
-end_time = datetime(*datetime.now().timetuple()[:3])  # Get today's date from start of day
-start_time = end_time - timedelta(days=past_days)  # Start time as per selected days
+# Check if 'df' already exists in session state, otherwise fetch new data
+if 'df' not in st.session_state or st.session_state.site != site or st.session_state.past_days != past_days:
+    # Calculate start and end time
+    end_time = datetime(*datetime.now().timetuple()[:3])  # Get today's date from start of day
+    start_time = end_time - timedelta(days=past_days)  # Start time as per selected days
 
-# Fetch the time series data and cache
-@st.cache_data
-def cache_timeseries():
-    return getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
-df = cache_timeseries()
+    # Fetch the time series data and store it in session_state
+    st.session_state.df = getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
+    st.session_state.site = site  # Store the selected site in session state
+    st.session_state.past_days = past_days  # Store the selected number of past days
+
+# Retrieve the data from session state
+df = st.session_state.df
 
 # Sidebar selection for variables to display
 display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:-1])  # Exclude 'datetime' and last column if it's not relevant
