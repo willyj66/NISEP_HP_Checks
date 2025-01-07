@@ -15,8 +15,8 @@ lookup_df = getLookup(auth_url, username, password)
 variables = lookup_df.name.unique()
 sites = lookup_df.siteNamespace.unique()
 
-variable = st.multiselect(variables)
-site = st.multiselect(sites)
+variable = st.multiselect("Variable",variables)
+site = st.multiselect("Site",sites)
 df = getTimeseries(end_time,start_time,site,variable,auth_url, username, password)
 
 st.dataframe(df)
