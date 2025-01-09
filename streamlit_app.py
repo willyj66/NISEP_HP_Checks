@@ -29,12 +29,14 @@ else:
     past_days = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 # Check if 'df' already exists in session state, otherwise fetch new data
 if 'df' not in st.session_state or st.session_state.past_days != past_days:
+
     # Calculate start and end time
     end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
     start_time = end_time - timedelta(days=past_days)  # Start time as per selected days
 
     # Fetch the time series data and store it in session_state
     st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
+    st.session_state.df['datetime'] = pd.to_datetime(st.session_state.df['datetime'])
     st.session_state.past_days = past_days  # Store the selected number of past days
 
 # Retrieve the data from session state
@@ -67,7 +69,7 @@ if df.empty:
     st.warning("No data available for the selected parameters.")
 else:
     # Ensure 'datetime' is in proper format
-    df['datetime'] = pd.to_datetime(df['datetime'])
+    
 
     # --- Main Content ---
     st.title("📊 NISEP Time Series Data")
