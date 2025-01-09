@@ -8,8 +8,6 @@ from getNISEPdata import getTimeseries, getLookup
 st.sidebar.title("Controls")
 
 past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
-st.text(past_days_new)
-st.text(st.session_state.past_days)
 if past_days_new!=st.session_state.past_days:
     # --- Auth & Data Fetching ---
     auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
@@ -19,8 +17,6 @@ if past_days_new!=st.session_state.past_days:
     start_time = end_time - timedelta(days=past_days_new)  # Start time as per selected days
     st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
     st.session_state.past_days = past_days_new
-else:
-    st.session_state.df = st.session_state.df
 
 # Retrieve the data from session state
 df_sesh = st.session_state.df
