@@ -23,7 +23,10 @@ all_sites = lookup_df.siteNamespace.unique()
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
+if 'past_days' not in st.session_state:
+    past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
+else:
+    past_days = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 # Check if 'df' already exists in session state, otherwise fetch new data
 if 'df' not in st.session_state or st.session_state.past_days != past_days:
     # Calculate start and end time
