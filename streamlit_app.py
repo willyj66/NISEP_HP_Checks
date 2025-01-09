@@ -16,7 +16,8 @@ def cache_lookup():
 
 lookup_df = cache_lookup()
 variables = lookup_df.name.unique()
-sites = lookup_df.siteNamespace.unique()
+st.session_state.sites = lookup_df.siteNamespace.unique()
+sites = st.session_state.sites
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
