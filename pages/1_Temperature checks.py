@@ -18,16 +18,18 @@ if past_days_new!=st.session_state.past_days:
     st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
     st.session_state.past_days = past_days_new
 
+if 'df_temp' not in st.session_state:
 # Retrieve the data from session state
-df_sesh = st.session_state.df
-temperature_columns = df_sesh.filter(like='Temperature').columns
-columns_to_keep = ['datetime'] + list(temperature_columns)
-df = df_sesh[columns_to_keep]
-df['datetime'] = pd.to_datetime(df['datetime'])  # Ensure 'datetime' is in proper format
+    df_sesh = st.session_state.df
+    temperature_columns = df_sesh.filter(like='Temperature').columns
+    columns_to_keep = ['datetime'] + list(temperature_columns)
+    df_temp = df_sesh[columns_to_keep]
+    df_temp['datetime'] = pd.to_datetime(df_temp['datetime'])  # Ensure 'datetime' is in proper format
+    st.session_state.df_temp = df_temp
 # --- Main Content ---
 st.title("📊 NISEP Time Series Data")
-fig = px.line(df, x='datetime', y=df.columns, title="Heat pump data over the past "+str(st.session_state.past_days)+" days")
+fig = px.line(st.session_state.df_temp, x='datetime', y=st.session_state.df_temp.columns, title="Heat pump data over the past "+str(st.session_state.past_days)+" days")
 st.plotly_chart(fig, use_container_width=True)
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
-    st.dataframe(df)  # Show last 10 rows of the data
+    st.dataframe(st.session_state.df_temp)  # Show last 10 rows of the data
