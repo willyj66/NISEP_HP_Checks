@@ -2,12 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from getNISEPdata import getTimeseries, getLookup
-sites = st.session_state.sites
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-site = st.sidebar.multiselect("Select Site", sites)
-variable = None  # None for downloading all
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 
 
