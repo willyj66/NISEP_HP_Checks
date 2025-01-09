@@ -70,11 +70,11 @@ else:
 
     # --- Quick Metrics Section ---
     if display_variable:
-        st.subheader("\ud83d\udd0d Quick Metrics")
+        st.subheader("Quick Metrics")
         for var in display_variable:
             mean_value = filtered_df[var].mean() if not filtered_df.empty else "N/A"
             st.metric(label=f"Average {var}", value=mean_value)
 
     # --- Raw Data Preview ---
-    with st.expander("\ud83d\uddc2\ufe0f Show Raw Data"):
+    with st.expander("Show Raw Data"):
         st.dataframe(filtered_df)  # Show last 10 rows of the data
