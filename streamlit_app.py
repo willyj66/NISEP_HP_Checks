@@ -39,7 +39,7 @@ if 'df' not in st.session_state or st.session_state.past_days != past_days:
 df = st.session_state.df
 
 # Sidebar site selection
-display_site = st.sidebar.multiselect("Select Site", all_sites, all_sites)
+display_site = st.sidebar.multiselect("Select Site", all_sites, all_sites[0])
 
 # Filter available columns based on the selected sites
 if display_site:
