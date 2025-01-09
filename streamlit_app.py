@@ -72,13 +72,6 @@ else:
     else:
         st.warning("Please select at least one site to plot.")
 
-    # --- Quick Metrics Section ---
-    if site_columns:
-        st.subheader("🔍 Quick Metrics")
-        for col in site_columns:
-            mean_value = df[col].mean() if col in df.columns else "N/A"
-            st.metric(label=f"Average {col.split('(')[0].strip()}", value=mean_value)
-
     # --- Raw Data Preview ---
     with st.expander("🗂️ Show Raw Data"):
         st.dataframe(df[['datetime'] + site_columns])  # Show data for the selected site columns
