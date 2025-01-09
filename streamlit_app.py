@@ -39,7 +39,7 @@ if 'df' not in st.session_state or st.session_state.past_days != past_days:
 df = st.session_state.df
 
 # Sidebar site selection
-display_site = st.sidebar.multiselect("Select Site", all_sites, all_sites[0])
+display_site = st.sidebar.multiselect("Select Site", all_sites, all_sites)
 
 # Filter available columns based on the selected sites
 if display_site:
@@ -53,7 +53,7 @@ else:
 variable_options = [
     col.split(" (")[0].strip() for col in site_columns
 ]
-display_variable = st.sidebar.multiselect("Select Variable", variable_options, variable_options)
+display_variable = st.sidebar.multiselect("Select Variable", variable_options)
 
 # Filter the dataframe to include only relevant columns
 filtered_columns = ["datetime"] + [
