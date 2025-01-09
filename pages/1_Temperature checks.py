@@ -1,12 +1,21 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from datetime import datetime, timedelta
 from getNISEPdata import getTimeseries, getLookup
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
-
+past_days_new = st.sidebar.number_input("Days Displayed", 1, None, 1)
+if past_days_new!=st.session_state.past_days:
+    # --- Auth & Data Fetching ---
+    auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
+    username = st.secrets.get("Login", {}).get("Username", "")
+    password = st.secrets.get("Login", {}).get("Password", "")
+    end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
+    start_time = end_time - timedelta(days=past_days_new)  # Start time as per selected days
+    st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
+    st.session_state.past_days = past_days_new
 
 # Retrieve the data from session state
 df_sesh = st.session_state.df
