@@ -226,22 +226,29 @@ def load_config():
 
     return url, username, password
 
-def giveRef(lookup,site, variable=None):
-    # Ensure site is always a list
-    if isinstance(site, str):
+def giveRef(lookup, site, variable=None):
+    # Ensure site is always a list if not None
+    if site is not None and isinstance(site, str):
         site = [site]
     
     # Ensure variable is always a list if not None
     if variable is not None and isinstance(variable, str):
         variable = [variable]
     
-    if variable is None:
-        return lookup.ref[lookup.siteNamespace.isin(site)].tolist()
+    if site is None:
+        # If site is None, do not filter by site
+        if variable is None:
+            return lookup.ref.tolist()
+        else:
+            return lookup.ref[lookup.name.isin(variable)].tolist()
     else:
-        return lookup.ref[
-            lookup.siteNamespace.isin(site) &
-            lookup.name.isin(variable)
-        ].tolist()
+        if variable is None:
+            return lookup.ref[lookup.siteNamespace.isin(site)].tolist()
+        else:
+            return lookup.ref[
+                lookup.siteNamespace.isin(site) & 
+                lookup.name.isin(variable)
+            ].tolist()
 
 def login(auth_url, username, password):
     # Load the configuration
