@@ -21,7 +21,7 @@ sites = st.session_state.sites
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-site = st.sidebar.multiselect("Select Site", sites)
+site = st.sidebar.multiselect("Select Site", sites,None)
 variable = None  # None for downloading all
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 
