@@ -6,7 +6,10 @@ from getNISEPdata import getTimeseries, getLookup
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-past_days_new = st.sidebar.number_input("Days Displayed", 1, None, 1)
+if 'past_days' not in st.session_state:
+    past_days_new = st.sidebar.number_input("Days Displayed", 1, None, 1)
+else:
+    past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 if past_days_new!=st.session_state.past_days:
     # --- Auth & Data Fetching ---
     auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
