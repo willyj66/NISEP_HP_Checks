@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
 from getNISEPdata import getTimeseries, getLookup
-st.dataframe(st.session_state.df)
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 
