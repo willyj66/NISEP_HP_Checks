@@ -42,30 +42,43 @@ df = st.session_state.df
 # Sidebar selection for variables to display
 display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:])  # Exclude 'datetime' and last column if it's not relevant
 display_site = st.sidebar.multiselect("Select Site", sites,sites)
-site_columns = df.filter(like=display_site).columns
+# Filter columns based on selected sites
+if display_site:
+    site_columns = [
+        col for col in df.columns
+        if any(f"({site})" in col for site in display_site)
+    ]
+else:
+    site_columns = []
 # --- Data Processing ---
 if df.empty:
     st.warning("No data available for the selected parameters.")
 else:
-    df['datetime'] = pd.to_datetime(df['datetime'])  # Ensure 'datetime' is in proper format
+    # Ensure 'datetime' is in proper format
+    df['datetime'] = pd.to_datetime(df['datetime'])
 
     # --- Main Content ---
     st.title("📊 NISEP Time Series Data")
 
     # Plotting multiple variables using Plotly
-    if display_variable:
-        fig = px.line(df[site_columns], x='datetime', y=display_variable, title="Heat pump data over the past "+str(st.session_state.past_days)+" days")
+    if site_columns:
+        fig = px.line(
+            df,
+            x='datetime',
+            y=site_columns,
+            title=f"Heat pump data over the past {st.session_state.past_days} days"
+        )
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.warning("Please select at least one variable to plot.")
+        st.warning("Please select at least one site to plot.")
 
     # --- Quick Metrics Section ---
-    if display_variable:
+    if site_columns:
         st.subheader("🔍 Quick Metrics")
-        for var in display_variable:
-            mean_value = df[site_columns][var].mean() if not df.empty else "N/A"
-            st.metric(label=f"Average {var}", value=mean_value)
+        for col in site_columns:
+            mean_value = df[col].mean() if col in df.columns else "N/A"
+            st.metric(label=f"Average {col.split('(')[0].strip()}", value=mean_value)
 
     # --- Raw Data Preview ---
     with st.expander("🗂️ Show Raw Data"):
-        st.dataframe(df[site_columns])  # Show last 10 rows of the data
+        st.dataframe(df[['datetime'] + site_columns])  # Show data for the selected site columns
