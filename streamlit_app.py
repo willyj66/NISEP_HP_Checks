@@ -3,9 +3,7 @@ from getNISEPdata import getTimeseries, getLookup
 from datetime import datetime, timedelta
 import plotly.express as px
 import pandas as pd
-
 st.set_page_config(layout="wide")
-
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
@@ -18,20 +16,14 @@ def cache_lookup():
 
 lookup_df = cache_lookup()
 variables = lookup_df.name.unique()
-sites = lookup_df.siteNamespace.unique()
+st.session_state.sites = lookup_df.siteNamespace.unique()
+sites = st.session_state.sites
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-site = None  # None for downloading all
+site = None #None for downloading all
 variable = None  # None for downloading all
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
-
-display_site = st.sidebar.multiselect("Select Site for Visualization", sites)
-
-def filter_df(df, display_site):
-    if display_site:
-        return df[df['siteNamespace'].isin(display_site)]
-    return df
 
 # Check if 'df' already exists in session state, otherwise fetch new data
 if 'df' not in st.session_state or st.session_state.site != site or st.session_state.past_days != past_days:
@@ -41,6 +33,7 @@ if 'df' not in st.session_state or st.session_state.site != site or st.session_s
 
     # Fetch the time series data and store it in session_state
     st.session_state.df = getTimeseries(end_time, start_time, site, variable, auth_url, username, password)
+    #st.session_state.site = site  # Store the selected site in session state
     st.session_state.past_days = past_days  # Store the selected number of past days
 
 # Retrieve the data from session state
@@ -48,33 +41,31 @@ df = st.session_state.df
 
 # Sidebar selection for variables to display
 display_variable = st.sidebar.multiselect("Select Variable", df.columns[1:])  # Exclude 'datetime' and last column if it's not relevant
-
+display_site = st.sidebar.multiselect("Select Site", sites,sites)
+site_columns = df.filter(like=display_site).columns
 # --- Data Processing ---
 if df.empty:
     st.warning("No data available for the selected parameters.")
 else:
     df['datetime'] = pd.to_datetime(df['datetime'])  # Ensure 'datetime' is in proper format
 
-    # Filter the data for visualization based on selected sites
-    filtered_df = filter_df(df, display_site)
-
     # --- Main Content ---
-    st.title("NISEP Time Series Data")
+    st.title("📊 NISEP Time Series Data")
 
     # Plotting multiple variables using Plotly
     if display_variable:
-        fig = px.line(filtered_df, x='datetime', y=display_variable, title="Heat pump data over the past " + str(st.session_state.past_days) + " days")
+        fig = px.line(df[site_columns], x='datetime', y=display_variable, title="Heat pump data over the past "+str(st.session_state.past_days)+" days")
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.warning("Please select at least one variable to plot.")
 
     # --- Quick Metrics Section ---
     if display_variable:
-        st.subheader("Quick Metrics")
+        st.subheader("🔍 Quick Metrics")
         for var in display_variable:
-            mean_value = filtered_df[var].mean() if not filtered_df.empty else "N/A"
+            mean_value = df[site_columns][var].mean() if not df.empty else "N/A"
             st.metric(label=f"Average {var}", value=mean_value)
 
     # --- Raw Data Preview ---
-    with st.expander("Show Raw Data"):
-        st.dataframe(filtered_df)  # Show last 10 rows of the data
+    with st.expander("🗂️ Show Raw Data"):
+        st.dataframe(df[site_columns])  # Show last 10 rows of the data
