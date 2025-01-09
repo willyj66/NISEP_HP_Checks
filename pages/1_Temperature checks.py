@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly_express as px
+import plotly.express as px
 # Retrieve the data from session state
 df_sesh = st.session_state.df
 temperature_columns = df_sesh.filter(like='Temperature').columns
