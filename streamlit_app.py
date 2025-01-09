@@ -59,7 +59,7 @@ else:
     filtered_df = filter_df(df, display_site)
 
     # --- Main Content ---
-    st.title("\ud83d\udd0a NISEP Time Series Data")
+    st.title("NISEP Time Series Data")
 
     # Plotting multiple variables using Plotly
     if display_variable:
