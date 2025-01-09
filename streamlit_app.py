@@ -26,7 +26,7 @@ variable = None  # None for downloading all
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 
 # Check if 'df' already exists in session state, otherwise fetch new data
-if 'df' not in st.session_state or st.session_state.site != site or st.session_state.past_days != past_days:
+if 'df' not in st.session_state or st.session_state.past_days != past_days:
     # Calculate start and end time
     end_time = datetime(*datetime.now().timetuple()[:3])  # Get today's date from start of day
     start_time = end_time - timedelta(days=past_days)  # Start time as per selected days
