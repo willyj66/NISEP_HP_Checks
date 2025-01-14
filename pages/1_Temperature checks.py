@@ -1,15 +1,15 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime, timedelta
-from getNISEPdata import getTimeseries, getLookup
+from getNISEPdata import getTimeseries
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 
 past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 
-if past_days_new!=st.session_state.past_days:
+if past_days_new != st.session_state.past_days:
     # --- Auth & Data Fetching ---
     auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
     username = st.secrets.get("Login", {}).get("Username", "")
@@ -22,23 +22,73 @@ if past_days_new!=st.session_state.past_days:
 # Retrieve the data from session state
 df_sesh = st.session_state.df
 temperature_columns = df_sesh.filter(like='Temperature').columns
+
 # Dynamically update the available variables based on the filtered columns
 variable_options = list(set([
     col.split(" (")[0].strip() for col in temperature_columns
 ]))
-display_variable = st.sidebar.multiselect("Select Variable", variable_options)
 
-# Filter the dataframe to include only relevant columns
-columns_to_keep = ["datetime"] + [
-    col for col in temperature_columns if col.split(" (")[0].strip() in display_variable
-]
-#columns_to_keep = ['datetime'] + list(temperature_columns)
-df = df_sesh[columns_to_keep]
-df['datetime'] = pd.to_datetime(df['datetime'])  # Ensure 'datetime' is in proper format
+# Define conditions
+def get_conditions(variable):
+    if "Flow" in variable or "Return" in variable:
+        return {"min": 20, "max": 70}  # Example Flow/Return conditions
+    elif "Outdoor" in variable:
+        return {"min": -30, "max": 50}  # Example Outdoor conditions
+    else:
+        return {"min": 18, "max": 26}  # Example Indoor conditions
+
 # --- Main Content ---
 st.title("📊 NISEP Time Series Data")
-fig = px.line(df, x='datetime', y=df.columns, title="Heat pump data over the past "+str(st.session_state.past_days)+" days")
-st.plotly_chart(fig, use_container_width=True)
+
+for variable in variable_options:
+    # Filter columns corresponding to the current variable
+    relevant_columns = [col for col in temperature_columns if col.startswith(variable)]
+    if not relevant_columns:
+        continue
+
+    # Prepare the data
+    df = df_sesh[["datetime"] + relevant_columns]
+    df['datetime'] = pd.to_datetime(df['datetime'])
+
+    # Get conditions for the current variable
+    conditions = get_conditions(variable)
+
+    # Create the plot
+    fig = go.Figure()
+    for column in relevant_columns:
+        # Highlight out-of-range data
+        df["out_of_range"] = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
+
+        fig.add_trace(go.Scatter(
+            x=df["datetime"],
+            y=df[column],
+            mode="lines",
+            name=f"{column} - In Range",
+            line=dict(width=2, color="blue"),
+            legendgroup=column,
+            showlegend=False if len(relevant_columns) > 1 else True,
+            opacity=0.6
+        ))
+        fig.add_trace(go.Scatter(
+            x=df["datetime"][df["out_of_range"]],
+            y=df[column][df["out_of_range"]],
+            mode="lines",
+            name=f"{column} - Out of Range",
+            line=dict(width=4, color="red"),
+            legendgroup=column,
+            showlegend=True
+        ))
+
+    fig.update_layout(
+        title=f"{variable} Data",
+        xaxis_title="Datetime",
+        yaxis_title="Temperature (°C)",
+        legend_title="Legend",
+        template="plotly_white",
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
-    st.dataframe(df)  # Show last 10 rows of the data
+    st.dataframe(df_sesh)
