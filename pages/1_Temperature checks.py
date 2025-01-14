@@ -63,17 +63,31 @@ for variable in variable_options:
 
         if df["out_of_range"].any():  # Only add traces if there's out-of-range data
             traces_added = True
+            # Add the in-range trace (hidden from legend)
             fig.add_trace(go.Scatter(
                 x=df["datetime"],
                 y=df[column],
                 mode="lines",
-                name=f"{column} - Full Trace",
+                name=f"{column} - In Range",
                 line=dict(width=2, color="blue"),
+                showlegend=False,  # Hide in-range trace from legend
                 opacity=0.6
             ))
+
+            # Add the out-of-range trace (discontinuous)
+            out_of_range_x = []
+            out_of_range_y = []
+            for x, y, out_of_range in zip(df["datetime"], df[column], df["out_of_range"]):
+                if out_of_range:
+                    out_of_range_x.append(x)
+                    out_of_range_y.append(y)
+                else:
+                    out_of_range_x.append(None)  # Create discontinuity
+                    out_of_range_y.append(None)
+
             fig.add_trace(go.Scatter(
-                x=df["datetime"][df["out_of_range"]],
-                y=df[column][df["out_of_range"]],
+                x=out_of_range_x,
+                y=out_of_range_y,
                 mode="lines",
                 name=f"{column} - Out of Range",
                 line=dict(width=4, color="red"),
