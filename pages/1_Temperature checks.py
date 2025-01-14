@@ -47,15 +47,18 @@ df_sesh = st.session_state.df
 # --- Cache Data Processing ---
 @st.cache_data
 def process_data(df_sesh):
-    df_sesh = df_sesh.loc[:, ~df_sesh.columns.str.split(" (").str[0].eq("Temperature")]
+    # Filter out columns that start with "Temperature"
+    df_sesh = df_sesh.loc[:, ~df_sesh.columns.str.startswith("Temperature")]
+    
+    # Now, filter the temperature columns to get relevant ones
     temperature_columns = df_sesh.filter(like='Temperature').columns
 
+    # Extract the variable names
     variable_options = list(set([
         col.split(" (")[0].strip() for col in temperature_columns if "Temperature" not in col.split(" (")[0].strip()
     ]))
-    
-    return df_sesh, temperature_columns, variable_options
 
+    return df_sesh, temperature_columns, variable_options
 # Process the data with caching
 df_sesh, temperature_columns, variable_options = process_data(df_sesh)
 
