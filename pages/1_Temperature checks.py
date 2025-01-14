@@ -11,9 +11,9 @@ past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_st
 
 # Default boundary settings
 default_boundaries = {
-    "Flow/Return": {"min": 20, "max": 70},
-    "Outdoor": {"min": -30, "max": 50},
-    "Indoor": {"min": 18, "max": 26},
+    "Flow/Return": {"min": 10, "max": 70},
+    "Outdoor": {"min": -10, "max": 30},
+    "Indoor": {"min": 15, "max": 26},
 }
 
 # Sidebar expander for range adjustments
