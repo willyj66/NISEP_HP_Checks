@@ -9,6 +9,22 @@ st.sidebar.title("Controls")
 
 past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 
+# Default boundary settings
+default_boundaries = {
+    "Flow/Return": {"min": 20, "max": 70},
+    "Outdoor": {"min": -30, "max": 50},
+    "Indoor": {"min": 18, "max": 26},
+}
+
+# Sidebar expander for range adjustments
+with st.sidebar.expander("Adjust Boundaries"):
+    flow_min = st.number_input("Flow/Return Min", value=default_boundaries["Flow/Return"]["min"])
+    flow_max = st.number_input("Flow/Return Max", value=default_boundaries["Flow/Return"]["max"])
+    outdoor_min = st.number_input("Outdoor Min", value=default_boundaries["Outdoor"]["min"])
+    outdoor_max = st.number_input("Outdoor Max", value=default_boundaries["Outdoor"]["max"])
+    indoor_min = st.number_input("Indoor Min", value=default_boundaries["Indoor"]["min"])
+    indoor_max = st.number_input("Indoor Max", value=default_boundaries["Indoor"]["max"])
+
 if past_days_new != st.session_state.past_days:
     # --- Auth & Data Fetching ---
     auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
@@ -28,14 +44,14 @@ variable_options = list(set([
     col.split(" (")[0].strip() for col in temperature_columns
 ]))
 
-# Define conditions
+# Function to determine min/max values based on variable type
 def get_conditions(variable):
     if "Flow" in variable or "Return" in variable:
-        return {"min": 20, "max": 70}  # Example Flow/Return conditions
+        return {"min": flow_min, "max": flow_max}
     elif "Outdoor" in variable:
-        return {"min": -30, "max": 50}  # Example Outdoor conditions
+        return {"min": outdoor_min, "max": outdoor_max}
     else:
-        return {"min": 18, "max": 26}  # Example Indoor conditions
+        return {"min": indoor_min, "max": indoor_max}
 
 # --- Main Content ---
 st.title("📊 NISEP Time Series Data")
@@ -53,55 +69,47 @@ for variable in variable_options:
     # Get conditions for the current variable
     conditions = get_conditions(variable)
 
+    # Determine locations with out-of-range data
+    out_of_range_locations = [
+        col for col in relevant_columns
+        if ((df[col] < conditions["min"]) | (df[col] > conditions["max"])).any()
+    ]
+
+    if not out_of_range_locations:
+        continue  # Skip if no out-of-range data
+
+    # Radio buttons for filtering locations
+    selected_location = st.radio(f"Select Location for {variable}", out_of_range_locations, key=variable)
+
     # Create the plot
     fig = go.Figure()
-    traces_added = False  # Track if at least one trace is added
-
     for column in relevant_columns:
         # Identify out-of-range data
-        df["out_of_range"] = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
+        out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
 
-        if df["out_of_range"].any():  # Only add traces if there's out-of-range data
-            traces_added = True
-            # Add the in-range trace (hidden from legend)
+        if column == selected_location:
+            line_style = [
+                "solid" if not is_out else "dash"
+                for is_out in out_of_range_mask
+            ]
             fig.add_trace(go.Scatter(
                 x=df["datetime"],
                 y=df[column],
                 mode="lines",
-                name=f"{column} - In Range",
-                line=dict(width=2, color="blue"),
-                showlegend=False,  # Hide in-range trace from legend
-                opacity=0.6
+                name=column,
+                line=dict(width=3, color="blue"),
+                customdata=line_style,  # Placeholder to allow additional styling
             ))
 
-            # Add the out-of-range trace (discontinuous)
-            out_of_range_x = []
-            out_of_range_y = []
-            for x, y, out_of_range in zip(df["datetime"], df[column], df["out_of_range"]):
-                if out_of_range:
-                    out_of_range_x.append(x)
-                    out_of_range_y.append(y)
-                else:
-                    out_of_range_x.append(None)  # Create discontinuity
-                    out_of_range_y.append(None)
+    fig.update_layout(
+        title=f"{variable} Data ({selected_location})",
+        xaxis_title="Datetime",
+        yaxis_title="Temperature (°C)",
+        legend_title="Legend",
+        template="plotly_white",
+    )
 
-            fig.add_trace(go.Scatter(
-                x=out_of_range_x,
-                y=out_of_range_y,
-                mode="lines",
-                name=f"{column} - Out of Range",
-                line=dict(width=4, color="red"),
-            ))
-
-    if traces_added:
-        fig.update_layout(
-            title=f"{variable} Data",
-            xaxis_title="Datetime",
-            yaxis_title="Temperature (°C)",
-            legend_title="Legend",
-            template="plotly_white",
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
