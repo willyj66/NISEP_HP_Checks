@@ -55,39 +55,39 @@ for variable in variable_options:
 
     # Create the plot
     fig = go.Figure()
+    traces_added = False  # Track if at least one trace is added
+
     for column in relevant_columns:
-        # Highlight out-of-range data
+        # Identify out-of-range data
         df["out_of_range"] = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
 
-        fig.add_trace(go.Scatter(
-            x=df["datetime"],
-            y=df[column],
-            mode="lines",
-            name=f"{column} - In Range",
-            line=dict(width=2, color="blue"),
-            legendgroup=column,
-            showlegend=False if len(relevant_columns) > 1 else True,
-            opacity=0.6
-        ))
-        fig.add_trace(go.Scatter(
-            x=df["datetime"][df["out_of_range"]],
-            y=df[column][df["out_of_range"]],
-            mode="lines",
-            name=f"{column} - Out of Range",
-            line=dict(width=4, color="red"),
-            legendgroup=column,
-            showlegend=True
-        ))
+        if df["out_of_range"].any():  # Only add traces if there's out-of-range data
+            traces_added = True
+            fig.add_trace(go.Scatter(
+                x=df["datetime"],
+                y=df[column],
+                mode="lines",
+                name=f"{column} - Full Trace",
+                line=dict(width=2, color="blue"),
+                opacity=0.6
+            ))
+            fig.add_trace(go.Scatter(
+                x=df["datetime"][df["out_of_range"]],
+                y=df[column][df["out_of_range"]],
+                mode="lines",
+                name=f"{column} - Out of Range",
+                line=dict(width=4, color="red"),
+            ))
 
-    fig.update_layout(
-        title=f"{variable} Data",
-        xaxis_title="Datetime",
-        yaxis_title="Temperature (°C)",
-        legend_title="Legend",
-        template="plotly_white",
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
+    if traces_added:
+        fig.update_layout(
+            title=f"{variable} Data",
+            xaxis_title="Datetime",
+            yaxis_title="Temperature (°C)",
+            legend_title="Legend",
+            template="plotly_white",
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
