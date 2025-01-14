@@ -23,10 +23,10 @@ if past_days_new!=st.session_state.past_days:
 df_sesh = st.session_state.df
 temperature_columns = df_sesh.filter(like='Temperature').columns
 # Dynamically update the available variables based on the filtered columns
-variable_options = [
+variable_options = list(set([
     col.split(" (")[0].strip() for col in temperature_columns
-]
-display_variable = st.sidebar.multiselect("Select Variable", variable_options.unique())
+]))
+display_variable = st.sidebar.multiselect("Select Variable", variable_options)
 
 # Filter the dataframe to include only relevant columns
 columns_to_keep = ["datetime"] + [
