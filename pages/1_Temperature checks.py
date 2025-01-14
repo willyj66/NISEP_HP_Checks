@@ -36,7 +36,7 @@ if past_days_new != st.session_state.past_days:
     st.session_state.past_days = past_days_new
 
 # Retrieve the data from session state
-df_sesh = st.session_state.df.drop("Temperature") # Drop the column called "Temperature" as this is the 4G router temp
+df_sesh = st.session_state.df.drop("Temperature",axis=1) # Drop the column called "Temperature" as this is the 4G router temp
 temperature_columns = df_sesh.filter(like='Temperature').columns
 
 # Dynamically update the available variables based on the filtered columns
