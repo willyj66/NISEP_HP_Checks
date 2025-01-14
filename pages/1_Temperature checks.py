@@ -26,7 +26,7 @@ temperature_columns = df_sesh.filter(like='Temperature').columns
 variable_options = [
     col.split(" (")[0].strip() for col in temperature_columns
 ]
-display_variable = st.sidebar.multiselect("Select Variable", variable_options)
+display_variable = st.sidebar.multiselect("Select Variable", variable_options.unique())
 
 # Filter the dataframe to include only relevant columns
 columns_to_keep = ["datetime"] + [
