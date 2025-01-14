@@ -4,11 +4,6 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from getNISEPdata import getTimeseries
 
-# --- Cache Data Fetching ---
-@st.cache_data
-def get_data(auth_url, username, password, start_time, end_time):
-    return getTimeseries(end_time, start_time, None, None, auth_url, username, password)
-
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 
@@ -37,30 +32,17 @@ if past_days_new != st.session_state.past_days:
     password = st.secrets.get("Login", {}).get("Password", "")
     end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
     start_time = end_time - timedelta(days=past_days_new)  # Start time as per selected days
-    # Use cached data fetching function
-    st.session_state.df = get_data(auth_url, username, password, start_time, end_time)
+    st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
     st.session_state.past_days = past_days_new
 
 # Retrieve the data from session state
 df_sesh = st.session_state.df
+temperature_columns = df_sesh.filter(like='Temperature').columns
 
-# --- Cache Data Processing ---
-@st.cache_data
-def process_data(df_sesh):
-    # Filter out columns that start with "Temperature"
-    df_sesh = df_sesh.loc[:, ~df_sesh.columns.str.startswith("Temperature")]
-    
-    # Now, filter the temperature columns to get relevant ones
-    temperature_columns = df_sesh.filter(like='Temperature').columns
-
-    # Extract the variable names
-    variable_options = list(set([
-        col.split(" (")[0].strip() for col in temperature_columns if "Temperature" not in col.split(" (")[0].strip()
-    ]))
-
-    return df_sesh, temperature_columns, variable_options
-# Process the data with caching
-df_sesh, temperature_columns, variable_options = process_data(df_sesh)
+# Dynamically update the available variables based on the filtered columns
+variable_options = list(set([
+    col.split(" (")[0].strip() for col in temperature_columns
+]))
 
 # Function to determine min/max values based on variable type
 def get_conditions(variable):
@@ -84,6 +66,8 @@ for variable in variable_options:
     # Filter columns corresponding to the current variable
     relevant_columns = [col for col in temperature_columns if col.startswith(variable)]
     if not relevant_columns:
+        continue
+    if variable=="Temperature":
         continue
 
     # Prepare the data
