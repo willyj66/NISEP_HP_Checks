@@ -87,13 +87,20 @@ for variable in variable_options:
     if not out_of_range_locations:
         continue  # Skip if no out-of-range data
 
-    # Horizontal checkboxes for filtering locations
+    # Horizontal checkboxes for filtering locations, using multiple columns
     st.write(f"**Select Locations for {variable}**:")
     selected_locations = []
-    for col in out_of_range_locations:
+    
+    # Determine how many columns to create (e.g., 3 columns if there are 6 locations)
+    num_columns = len(out_of_range_locations)
+    columns = st.columns(num_columns)  # Create the columns dynamically
+    
+    # Create a checkbox for each location across the columns
+    for idx, col in enumerate(out_of_range_locations):
         location_id = locations[col]
-        if st.checkbox(location_id, value=True, key=f"checkbox_{variable}_{location_id}"):
-            selected_locations.append(col)
+        with columns[idx % num_columns]:  # Distribute checkboxes across columns
+            if st.checkbox(location_id, value=True, key=f"checkbox_{variable}_{location_id}"):
+                selected_locations.append(col)
 
     # Create the plot
     fig = go.Figure()
