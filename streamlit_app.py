@@ -52,9 +52,9 @@ else:
     site_columns = df.columns[1:]  # Exclude 'datetime'
 
 # Dynamically update the available variables based on the filtered columns
-variable_options = [
+variable_options = list(set([
     col.split(" (")[0].strip() for col in site_columns
-]
+]))
 display_variable = st.sidebar.multiselect("Select Variable", variable_options)
 
 # Filter the dataframe to include only relevant columns
