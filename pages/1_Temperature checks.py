@@ -9,7 +9,7 @@ st.sidebar.title("Controls")
 
 past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 
-# Default boundary settings
+# Updated default boundary settings
 default_boundaries = {
     "Flow/Return": {"min": 10, "max": 70},
     "Outdoor": {"min": -10, "max": 30},
@@ -87,13 +87,15 @@ for variable in variable_options:
     if not out_of_range_locations:
         continue  # Skip if no out-of-range data
 
-    # Checkboxes for filtering locations
+    # Horizontal checkboxes for filtering locations
     selected_locations = st.multiselect(
         f"Select Locations for {variable}",
         options=[locations[col] for col in out_of_range_locations],
         default=[locations[col] for col in out_of_range_locations],
         format_func=lambda x: x,
-        key=f"multiselect_{variable}"
+        key=f"checkbox_{variable}",
+        label_visibility="collapsed",
+        direction="horizontal"
     )
 
     # Create the plot
