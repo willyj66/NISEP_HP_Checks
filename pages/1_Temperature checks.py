@@ -104,26 +104,34 @@ for variable in variable_options:
         if location_id not in selected_locations:
             continue
 
-        # Identify out-of-range data
+        # Identify in-range and out-of-range data
         out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
+        in_range_mask = ~out_of_range_mask
 
-        # Create a single trace with varying line styles
-        line_dash = ["solid" if not is_out else "dash" for is_out in out_of_range_mask]
+        # Add in-range data (hidden in legend)
         fig.add_trace(go.Scatter(
             x=df["datetime"],
-            y=df[column],
+            y=df[column].where(in_range_mask),
+            mode="lines",
+            name=f"In-Range: {location_id}",
+            line=dict(width=2, color="blue"),
+            showlegend=False  # Hide in-range traces from the legend
+        ))
+
+        # Add out-of-range data
+        fig.add_trace(go.Scatter(
+            x=df["datetime"],
+            y=df[column].where(out_of_range_mask),
             mode="lines",
             name=f"{variable} ({location_id})",
-            line=dict(width=2, color="blue"),
-            customdata=line_dash,  # Custom line style
-            hovertemplate="%{y:.2f} °C<extra></extra>"
+            line=dict(width=3, color="red"),
         ))
 
     fig.update_layout(
         title=f"{variable} Data",
         xaxis_title="Datetime",
         yaxis_title="Temperature (°C)",
-        legend_title="Locations",
+        legend_title="Out-of-Range Locations",
         template="plotly_white",
     )
 
