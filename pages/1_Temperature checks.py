@@ -37,15 +37,11 @@ if past_days_new != st.session_state.past_days:
 
 # Retrieve the data from session state
 df_sesh = st.session_state.df
-
-# Drop columns where the first part of the column name is "Temperature"
-df_sesh = df_sesh.loc[:, ~df_sesh.columns.str.split(" (").str[0].eq("Temperature")]
-
 temperature_columns = df_sesh.filter(like='Temperature').columns
 
-# Filter out "Temperature" if it's the only variable
+# Dynamically update the available variables based on the filtered columns
 variable_options = list(set([
-    col.split(" (")[0].strip() for col in temperature_columns if "Temperature" not in col.split(" (")[0].strip()
+    col.split(" (")[0].strip() for col in temperature_columns
 ]))
 
 # Function to determine min/max values based on variable type
