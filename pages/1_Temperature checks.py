@@ -88,22 +88,18 @@ for variable in variable_options:
         continue  # Skip if no out-of-range data
 
     # Horizontal checkboxes for filtering locations
-    selected_locations = st.multiselect(
-        f"Select Locations for {variable}",
-        options=[locations[col] for col in out_of_range_locations],
-        default=[locations[col] for col in out_of_range_locations],
-        format_func=lambda x: x,
-        key=f"checkbox_{variable}",
-        label_visibility="collapsed",
-        direction="horizontal"
-    )
+    st.write(f"**Select Locations for {variable}**:")
+    selected_locations = []
+    for col in out_of_range_locations:
+        location_id = locations[col]
+        if st.checkbox(location_id, value=True, key=f"checkbox_{variable}_{location_id}"):
+            selected_locations.append(col)
 
     # Create the plot
     fig = go.Figure()
     for column in relevant_columns:
         # Skip if the location is not selected
-        location_id = locations[column]
-        if location_id not in selected_locations:
+        if column not in selected_locations:
             continue
 
         # Identify in-range and out-of-range data
@@ -115,7 +111,7 @@ for variable in variable_options:
             x=df["datetime"],
             y=df[column].where(in_range_mask),
             mode="lines",
-            name=f"In-Range: {location_id}",
+            name=f"In-Range: {locations[column]}",
             line=dict(width=2, color="blue"),
             showlegend=False  # Hide in-range traces from the legend
         ))
@@ -125,7 +121,7 @@ for variable in variable_options:
             x=df["datetime"],
             y=df[column].where(out_of_range_mask),
             mode="lines",
-            name=f"{variable} ({location_id})",
+            name=f"{variable} ({locations[column]})",
             line=dict(width=3, color="red"),
         ))
 
