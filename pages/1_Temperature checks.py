@@ -53,6 +53,12 @@ def get_conditions(variable):
     else:
         return {"min": indoor_min, "max": indoor_max}
 
+# Extract location IDs from variable names
+def extract_location(variable_name):
+    if "(" in variable_name and ")" in variable_name:
+        return variable_name.split("(")[-1].strip(")")
+    return "Unknown"
+
 # --- Main Content ---
 st.title("📊 NISEP Time Series Data")
 
@@ -69,6 +75,9 @@ for variable in variable_options:
     # Get conditions for the current variable
     conditions = get_conditions(variable)
 
+    # Extract location IDs
+    locations = {col: extract_location(col) for col in relevant_columns}
+
     # Determine locations with out-of-range data
     out_of_range_locations = [
         col for col in relevant_columns
@@ -78,34 +87,43 @@ for variable in variable_options:
     if not out_of_range_locations:
         continue  # Skip if no out-of-range data
 
-    # Radio buttons for filtering locations
-    selected_location = st.radio(f"Select Location for {variable}", out_of_range_locations, key=variable)
+    # Checkboxes for filtering locations
+    selected_locations = st.multiselect(
+        f"Select Locations for {variable}",
+        options=[locations[col] for col in out_of_range_locations],
+        default=[locations[col] for col in out_of_range_locations],
+        format_func=lambda x: x,
+        key=f"multiselect_{variable}"
+    )
 
     # Create the plot
     fig = go.Figure()
     for column in relevant_columns:
+        # Skip if the location is not selected
+        location_id = locations[column]
+        if location_id not in selected_locations:
+            continue
+
         # Identify out-of-range data
         out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
 
-        if column == selected_location:
-            line_style = [
-                "solid" if not is_out else "dash"
-                for is_out in out_of_range_mask
-            ]
-            fig.add_trace(go.Scatter(
-                x=df["datetime"],
-                y=df[column],
-                mode="lines",
-                name=column,
-                line=dict(width=3, color="blue"),
-                customdata=line_style,  # Placeholder to allow additional styling
-            ))
+        # Create a single trace with varying line styles
+        line_dash = ["solid" if not is_out else "dash" for is_out in out_of_range_mask]
+        fig.add_trace(go.Scatter(
+            x=df["datetime"],
+            y=df[column],
+            mode="lines",
+            name=f"{variable} ({location_id})",
+            line=dict(width=2, color="blue"),
+            customdata=line_dash,  # Custom line style
+            hovertemplate="%{y:.2f} °C<extra></extra>"
+        ))
 
     fig.update_layout(
-        title=f"{variable} Data ({selected_location})",
+        title=f"{variable} Data",
         xaxis_title="Datetime",
         yaxis_title="Temperature (°C)",
-        legend_title="Legend",
+        legend_title="Locations",
         template="plotly_white",
     )
 
