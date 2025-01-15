@@ -3,7 +3,6 @@ import pandas as pd
 from getNISEPdata import getTimeseries
 from datetime import datetime, timedelta
 
-# Function to calculate COP
 def calculate_cop(data):
     df_numeric = data.drop(columns=['datetime'])
     cop = pd.DataFrame()
@@ -13,7 +12,16 @@ def calculate_cop(data):
             consumption_column = column.replace('Output Heat Energy', 'ASHP Consumption Energy')
             if consumption_column in df_numeric.columns:
                 site_id = column.split('(')[-1].strip(')')  # Extract site ID
-                cop.loc[site_id, 'COP'] = df_numeric[column].iloc[-1] / df_numeric[consumption_column].iloc[-1]
+
+                # Compute differences
+                heat_diff = df_numeric[column].iloc[-1] - df_numeric[column].iloc[0]
+                consumption_diff = df_numeric[consumption_column].iloc[-1] - df_numeric[consumption_column].iloc[0]
+
+                # Avoid division by zero
+                if consumption_diff != 0:
+                    cop.loc[site_id, 'COP'] = heat_diff / consumption_diff
+                else:
+                    cop.loc[site_id, 'COP'] = float('inf')  # Infinite COP when no energy consumed
 
     return cop
 
