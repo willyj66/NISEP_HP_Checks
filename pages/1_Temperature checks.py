@@ -67,9 +67,8 @@ for variable in variable_options:
     relevant_columns = [col for col in temperature_columns if col.startswith(variable)]
     if not relevant_columns:
         continue
-    if variable=="Temperature":
-
     # Prepare the data
+    
     df = df_sesh[["datetime"] + relevant_columns]
     df['datetime'] = pd.to_datetime(df['datetime'])
 
