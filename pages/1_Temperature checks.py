@@ -9,10 +9,11 @@ st.sidebar.title("Controls")
 
 
 if 'past_days' not in st.session_state:
-    past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
+    st.session_state.past_days = 1
+    past_days = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 else:
     past_days = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
-    
+
 # Updated default boundary settings
 default_boundaries = {
     "Flow/Return": {"min": 10, "max": 70},
