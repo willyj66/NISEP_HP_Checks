@@ -33,7 +33,7 @@ variables = ["ashp_c1_2_consumption_energy", "output_heat_energy"]
 # Fetch the data based on selected range
 end_time = datetime(*datetime.now().timetuple()[:3])
 start_time = end_time - timedelta(days=selected_days)
-data = getTimeseries(end_time, start_time, None, variables, url, username, password, interval="hour" if selected_days < 30 else "day")
+data = getTimeseries(end_time, start_time, None, variables, url, username, password, interval="hour" if selected_days == 30 else "day")
 
 # Extract numeric data for calculations
 df_numeric = data.drop(columns=['datetime'])
