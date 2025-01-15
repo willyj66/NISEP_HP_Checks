@@ -7,8 +7,12 @@ from getNISEPdata import getTimeseries
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 
-past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 
+if 'past_days' not in st.session_state:
+    past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
+else:
+    past_days = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
+    
 # Updated default boundary settings
 default_boundaries = {
     "Flow/Return": {"min": 10, "max": 70},
