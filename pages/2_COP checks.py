@@ -3,80 +3,60 @@ import pandas as pd
 from getNISEPdata import getTimeseries
 from datetime import datetime, timedelta
 
-# --- Sidebar for Date Selection ---
-st.sidebar.title("COP Analysis Settings")
+# Function to calculate COP
+def calculate_cop(data):
+    df_numeric = data.drop(columns=['datetime'])
+    cop = pd.DataFrame()
 
-# Select date ranges
-analysis_range = st.sidebar.radio(
-    "Select Analysis Range:",
-    ["Daily", "Weekly", "Monthly"],
-    index=2
-)
+    for column in df_numeric.columns:
+        if 'Output Heat Energy' in column:
+            consumption_column = column.replace('Output Heat Energy', 'ASHP Consumption Energy')
+            if consumption_column in df_numeric.columns:
+                site_id = column.split('(')[-1].strip(')')  # Extract site ID
+                cop.loc[site_id, 'COP'] = df_numeric[column].iloc[-1] / df_numeric[consumption_column].iloc[-1]
 
-# Mapping ranges to days
-range_mapping = {
-    "Daily": 1,
-    "Weekly": 7,
-    "Monthly": 30
-}
+    return cop
 
-selected_days = range_mapping[analysis_range]
+# --- Sidebar for Control ---
+st.sidebar.title("Controls")
 
-# Retrieve login credentials from Streamlit secrets
-url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
+st.sidebar.write("Select the time intervals to calculate the COP:")
+past_days_new = st.sidebar.number_input("Days Displayed", 1, None, 30)
+
+# --- Auth & Data Fetching ---
+auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
 password = st.secrets.get("Login", {}).get("Password", "")
 
-# Define variables for the heat pump analysis
-variables = ["ashp_c1_2_consumption_energy", "output_heat_energy"]
+end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
 
-# Fetch the data based on selected range
-end_time = datetime(*datetime.now().timetuple()[:3])
-start_time = end_time - timedelta(days=selected_days)
-data = getTimeseries(end_time, start_time, None, variables, url, username, password, interval="hour" if selected_days == 30 else "day")
+# Fetch data for all intervals
+data_intervals = {
+    "Daily": getTimeseries(end_time, end_time - timedelta(days=1), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour"),
+    "Weekly": getTimeseries(end_time, end_time - timedelta(days=7), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour"),
+    "Monthly": getTimeseries(end_time, end_time - timedelta(days=30), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="day"),
+}
 
-# Extract numeric data for calculations
-df_numeric = data.drop(columns=['datetime'])
+cop_data = pd.DataFrame()
 
-# Calculate differences between the last and first rows (for cumulative energy)
-difference = df_numeric.iloc[-1] - df_numeric.iloc[0]
+# Calculate COP for each interval
+for interval, data in data_intervals.items():
+    interval_cop = calculate_cop(data)
+    interval_cop = interval_cop.rename(columns={"COP": interval})
+    if cop_data.empty:
+        cop_data = interval_cop
+    else:
+        cop_data = cop_data.merge(interval_cop, left_index=True, right_index=True, how="outer")
 
-# Create an empty Series to store COP values
-cop = pd.Series(dtype='float64')
+# Display COP Table
+st.title("📊 Heat Pump COP Analysis")
 
-# Calculate COP for each Output Heat Energy and corresponding ASHP Consumption Energy column
-for column in df_numeric.columns:
-    if 'Output Heat Energy' in column:  # Find Output Heat Energy columns
-        # Get the corresponding ASHP Consumption Energy column
-        consumption_column = column.replace('Output Heat Energy', 'ASHP Consumption Energy')
+st.write("Below is the COP analysis for different time intervals:")
 
-        # Calculate COP if both columns exist
-        if consumption_column in df_numeric.columns:
-            cop[column] = df_numeric[column].iloc[-1] / df_numeric[consumption_column].iloc[-1]
+st.dataframe(cop_data)
 
-# --- Main Content ---
-st.title("Coefficient of Performance (COP) Analysis")
-
-# Display the analysis range and results
-st.subheader(f"Analysis Range: {analysis_range}")
-
-if cop.empty:
-    st.warning("No COP data available for the selected range.")
-else:
-    st.success("COP calculated successfully!")
-    
-    # Display the COP values in a table
-    st.write("### COP Values")
-    st.table(cop.reset_index().rename(columns={"index": "Heat Pump", 0: "COP Value"}))
-
-    # Highlight any COP values below a threshold (e.g., 2.5)
-    low_cop_threshold = 2.5
-    low_cop = cop[cop < low_cop_threshold]
-
-    if not low_cop.empty:
-        st.warning(f"The following heat pumps have COP below {low_cop_threshold}:")
-        st.table(low_cop.reset_index().rename(columns={"index": "Heat Pump", 0: "COP Value"}))
-
-# --- Raw Data Display ---
+# --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
-    st.dataframe(data)
+    for interval, data in data_intervals.items():
+        st.write(f"**{interval} Data**")
+        st.dataframe(data)
