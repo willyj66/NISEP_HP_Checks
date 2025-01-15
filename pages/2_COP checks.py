@@ -3,7 +3,11 @@ import pandas as pd
 from getNISEPdata import getTimeseries
 from datetime import datetime, timedelta
 
-def calculate_cop(data):
+# Function to calculate COP
+def calculate_cop(data, interval_name):
+    st.write(f"**Debug: {interval_name} Raw Data**")
+    st.dataframe(data)
+
     df_numeric = data.drop(columns=['datetime'])
     cop = pd.DataFrame()
 
@@ -17,13 +21,26 @@ def calculate_cop(data):
                 heat_diff = df_numeric[column].iloc[-1] - df_numeric[column].iloc[0]
                 consumption_diff = df_numeric[consumption_column].iloc[-1] - df_numeric[consumption_column].iloc[0]
 
+                # Debugging output for the differences
+                st.write(f"**{interval_name} Debug for {site_id}:**")
+                st.write(f"  - Heat Difference: {heat_diff}")
+                st.write(f"  - Consumption Difference: {consumption_diff}")
 
-                cop.loc[site_id, 'COP'] = heat_diff / consumption_diff
+                # Avoid division by zero
+                if consumption_diff != 0:
+                    cop.loc[site_id, 'COP'] = heat_diff / consumption_diff
+                else:
+                    cop.loc[site_id, 'COP'] = float('inf')  # Infinite COP when no energy consumed
 
+    st.write(f"**{interval_name} COP Results:**")
+    st.dataframe(cop)
     return cop
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
+
+st.sidebar.write("Select the time intervals to calculate the COP:")
+past_days_new = st.sidebar.number_input("Days Displayed", 1, None, 30)
 
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
@@ -43,7 +60,7 @@ cop_data = pd.DataFrame()
 
 # Calculate COP for each interval
 for interval, data in data_intervals.items():
-    interval_cop = calculate_cop(data)
+    interval_cop = calculate_cop(data, interval)
     interval_cop = interval_cop.rename(columns={"COP": interval})
     if cop_data.empty:
         cop_data = interval_cop
@@ -54,7 +71,6 @@ for interval, data in data_intervals.items():
 st.title("📊 Heat Pump COP Analysis")
 
 st.write("Below is the COP analysis for different time intervals:")
-
 st.dataframe(cop_data)
 
 # --- Raw Data Preview ---
