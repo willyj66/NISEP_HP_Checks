@@ -66,19 +66,22 @@ for interval, data in data_intervals.items():
 # Display COP Table
 st.title("📊 Heat Pump COP Analysis")
 
-st.write("Below is the COP analysis for different time intervals:")
+st.write("Below is the analysis for different time intervals:")
 
-st.dataframe(cop_data)
+# Create three columns layout
+col1, col2, col3 = st.columns(3)
 
-# Display Heat Diff Table
-st.write("Below is the Heat Energy Difference analysis for different time intervals:")
+with col1:
+    st.subheader("Heat Diff")
+    st.dataframe(heat_diff_data)
 
-st.dataframe(heat_diff_data)
+with col2:
+    st.subheader("Consumption Diff")
+    st.dataframe(consumption_diff_data)
 
-# Display Consumption Diff Table
-st.write("Below is the Consumption Energy Difference analysis for different time intervals:")
-
-st.dataframe(consumption_diff_data)
+with col3:
+    st.subheader("COP")
+    st.dataframe(cop_data)
 
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
