@@ -20,9 +20,6 @@ def calculate_cop(data):
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 
-st.sidebar.write("Select the time intervals to calculate the COP:")
-past_days_new = st.sidebar.number_input("Days Displayed", 1, None, 30)
-
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
