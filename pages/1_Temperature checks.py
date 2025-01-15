@@ -3,7 +3,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from getNISEPdata import getTimeseries
-
+# Page layout configuration
+st.set_page_config(layout="wide")
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 if 'past_days' not in st.session_state:
