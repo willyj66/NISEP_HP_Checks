@@ -3,11 +3,7 @@ import pandas as pd
 from getNISEPdata import getTimeseries
 from datetime import datetime, timedelta
 
-# Function to calculate COP
-def calculate_cop(data, interval_name):
-    st.write(f"**Debug: {interval_name} Raw Data**")
-    st.dataframe(data)
-
+def calculate_cop(data):
     df_numeric = data.drop(columns=['datetime'])
     cop = pd.DataFrame()
 
@@ -21,26 +17,13 @@ def calculate_cop(data, interval_name):
                 heat_diff = df_numeric[column].iloc[-1] - df_numeric[column].iloc[0]
                 consumption_diff = df_numeric[consumption_column].iloc[-1] - df_numeric[consumption_column].iloc[0]
 
-                # Debugging output for the differences
-                st.write(f"**{interval_name} Debug for {site_id}:**")
-                st.write(f"  - Heat Difference: {heat_diff}")
-                st.write(f"  - Consumption Difference: {consumption_diff}")
 
-                # Avoid division by zero
-                if consumption_diff != 0:
-                    cop.loc[site_id, 'COP'] = heat_diff / consumption_diff
-                else:
-                    cop.loc[site_id, 'COP'] = float('inf')  # Infinite COP when no energy consumed
+                cop.loc[site_id, 'COP'] = heat_diff / consumption_diff
 
-    st.write(f"**{interval_name} COP Results:**")
-    st.dataframe(cop)
     return cop
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-
-st.sidebar.write("Select the time intervals to calculate the COP:")
-past_days_new = st.sidebar.number_input("Days Displayed", 1, None, 30)
 
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
@@ -51,16 +34,16 @@ end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the st
 
 # Fetch data for all intervals
 data_intervals = {
-    "Daily": getTimeseries(end_time, end_time - timedelta(days=1), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour"),
-    "Weekly": getTimeseries(end_time, end_time - timedelta(days=7), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour"),
-    "Monthly": getTimeseries(end_time, end_time - timedelta(days=30), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="day"),
+    "Daily": getTimeseries(end_time, end_time - timedelta(days=1), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour",averaging="average"),
+    "Weekly": getTimeseries(end_time, end_time - timedelta(days=7), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour",averaging="average"),
+    "Monthly": getTimeseries(end_time, end_time - timedelta(days=30), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="day",averaging="average"),
 }
 
 cop_data = pd.DataFrame()
 
 # Calculate COP for each interval
 for interval, data in data_intervals.items():
-    interval_cop = calculate_cop(data, interval)
+    interval_cop = calculate_cop(data)
     interval_cop = interval_cop.rename(columns={"COP": interval})
     if cop_data.empty:
         cop_data = interval_cop
@@ -71,6 +54,7 @@ for interval, data in data_intervals.items():
 st.title("📊 Heat Pump COP Analysis")
 
 st.write("Below is the COP analysis for different time intervals:")
+
 st.dataframe(cop_data)
 
 # --- Raw Data Preview ---
