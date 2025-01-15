@@ -27,7 +27,7 @@ with st.sidebar.expander("Adjust Boundaries"):
     indoor_min = st.number_input("Indoor Min", value=default_boundaries["Indoor"]["min"])
     indoor_max = st.number_input("Indoor Max", value=default_boundaries["Indoor"]["max"])
 
-if past_days_new != st.session_state.past_days:
+if past_days_new != st.session_state.past_days or 'df' not in st.session_state:
     # --- Auth & Data Fetching ---
     auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
     username = st.secrets.get("Login", {}).get("Username", "")
@@ -72,7 +72,7 @@ for variable in variable_options:
     # Prepare the data
     if variable=="Temperature":
         continue
-    
+
     df = df_sesh[["datetime"] + relevant_columns]
     df['datetime'] = pd.to_datetime(df['datetime'])
 
