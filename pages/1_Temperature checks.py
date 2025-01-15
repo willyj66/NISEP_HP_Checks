@@ -123,7 +123,7 @@ for variable in variable_options:
             x=df["datetime"],
             y=df[column].where(in_range_mask),
             mode="lines",
-            name=f"In-Range: {locations[column]}",
+            name=f"{locations[column]}",
             line=dict(width=2, color="blue"),
             showlegend=False  # Hide in-range traces from the legend
         ))
