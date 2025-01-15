@@ -17,11 +17,8 @@ def calculate_cop(data):
                 heat_diff = df_numeric[column].iloc[-1] - df_numeric[column].iloc[0]
                 consumption_diff = df_numeric[consumption_column].iloc[-1] - df_numeric[consumption_column].iloc[0]
 
-                # Avoid division by zero
-                if consumption_diff != 0:
-                    cop.loc[site_id, 'COP'] = heat_diff / consumption_diff
-                else:
-                    cop.loc[site_id, 'COP'] = float('inf')  # Infinite COP when no energy consumed
+
+                cop.loc[site_id, 'COP'] = heat_diff / consumption_diff
 
     return cop
 
