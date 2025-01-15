@@ -24,7 +24,7 @@ def calculate_cop(data):
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
-
+averaging = st.sidebar.selectbox("Averaging Type",['max','min','average'])
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
@@ -34,9 +34,9 @@ end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the st
 
 # Fetch data for all intervals
 data_intervals = {
-    "Daily": getTimeseries(end_time, end_time - timedelta(days=1), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour",averaging="average"),
-    "Weekly": getTimeseries(end_time, end_time - timedelta(days=7), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour",averaging="average"),
-    "Monthly": getTimeseries(end_time, end_time - timedelta(days=30), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="day",averaging="average"),
+    "Daily": getTimeseries(end_time, end_time - timedelta(days=1), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour",averaging=averaging),
+    "Weekly": getTimeseries(end_time, end_time - timedelta(days=7), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="hour",averaging=averaging),
+    "Monthly": getTimeseries(end_time, end_time - timedelta(days=30), None, ["ashp_c1_2_consumption_energy", "output_heat_energy"], auth_url, username, password, interval="day",averaging=averaging),
 }
 
 cop_data = pd.DataFrame()
