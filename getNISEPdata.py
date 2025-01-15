@@ -299,13 +299,13 @@ def getLookup(auth_url, username, password,return_login=False):
     else:
         return df
 
-def getTimeseries(end_time,start_time,site,variable, auth_url, username, password):
+def getTimeseries(end_time,start_time,site,variable, auth_url, username, password,averaging="max",interval="minute"):
     df, bmos_server,auth_header = getLookup(auth_url, username, password, return_login=True)
 
     daterange = f"{start_time.strftime('%Y-%m-%dT%H:%M:%S')},{end_time.strftime('%Y-%m-%dT%H:%M:%S')}" # format into the right date range string
     formatted_list = "[" + ", ".join(giveRef(df,site, variable)) + "]"
 
-    timeseries_response = historical_read(bmos_server, auth_header, "max", "minute", formatted_list, daterange)
+    timeseries_response = historical_read(bmos_server, auth_header, averaging, interval, formatted_list, daterange)
     timeseries_df = pd.read_csv(io.StringIO(timeseries_response.text), skiprows=1)
 
     # Filter the lookup DataFrame to only include relevant refs found in timeseries_df column names
