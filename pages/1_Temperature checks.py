@@ -133,7 +133,7 @@ for variable in variable_options:
             x=df["datetime"],
             y=df[column].where(out_of_range_mask),
             mode="lines",
-            name=f"{variable} ({locations[column]})",
+            name=f"{locations[column]}",
             line=dict(width=3, color="red"),
         ))
 
