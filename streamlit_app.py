@@ -49,9 +49,6 @@ def update_data(past_days, current_display_site, current_variable_1, current_var
     st.session_state.site_columns = site_columns
     st.session_state.variable_options = variable_options
     st.session_state.filtered_columns = filtered_columns
-    st.session_state.current_display_site = current_display_site
-    st.session_state.current_variable_1 = current_variable_1
-    st.session_state.current_variable_2 = current_variable_2
 
     return df, site_columns, variable_options, filtered_columns
 
@@ -70,44 +67,50 @@ if 'current_variable_1' not in st.session_state:
 if 'current_variable_2' not in st.session_state:
     st.session_state.current_variable_2 = []
 
-# Retrieve data from session state or update with new selections
-if 'past_days' not in st.session_state or st.session_state.past_days != past_days:
-    df, site_columns, variable_options, filtered_columns = update_data(past_days, [], [], [])
-else:
-    df = st.session_state.df
-    site_columns = st.session_state.site_columns
-    variable_options = st.session_state.variable_options
-    filtered_columns = st.session_state.filtered_columns
-
-# Update session state with selections if they have changed
-if (
-    st.session_state.current_display_site != current_display_site
-    or st.session_state.current_variable_1 != current_variable_1
-    or st.session_state.current_variable_2 != current_variable_2
-):
-    df, site_columns, variable_options, filtered_columns = update_data(
-        past_days, current_display_site, current_variable_1, current_variable_2
-    )
-
 # Sidebar Site Selection
 current_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
+    default=st.session_state.current_display_site,
     key="display_site",
 )
 
 # Sidebar Variable Selection
 current_variable_1 = st.sidebar.multiselect(
     "Select Variable 1 (Y1)",
-    variable_options,
+    st.session_state.variable_options,
+    default=st.session_state.current_variable_1,
     key="variable_1",
 )
 
 current_variable_2 = st.sidebar.multiselect(
     "Select Variable 2 (Y2)",
-    variable_options,
+    st.session_state.variable_options,
+    default=st.session_state.current_variable_2,
     key="variable_2",
 )
+
+# Check if selections have changed before triggering an update
+if (
+    current_display_site != st.session_state.current_display_site
+    or current_variable_1 != st.session_state.current_variable_1
+    or current_variable_2 != st.session_state.current_variable_2
+):
+    # Update the data when selections change
+    df, site_columns, variable_options, filtered_columns = update_data(
+        past_days, current_display_site, current_variable_1, current_variable_2
+    )
+
+    # Update session state with the new selections
+    st.session_state.current_display_site = current_display_site
+    st.session_state.current_variable_1 = current_variable_1
+    st.session_state.current_variable_2 = current_variable_2
+else:
+    # Use cached data if no changes in selections
+    df = st.session_state.df
+    site_columns = st.session_state.site_columns
+    variable_options = st.session_state.variable_options
+    filtered_columns = st.session_state.filtered_columns
 
 # --- Data Processing ---
 if df.empty:
