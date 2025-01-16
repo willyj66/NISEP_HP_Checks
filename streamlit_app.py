@@ -43,7 +43,7 @@ if 'past_days' not in st.session_state or st.session_state.past_days != past_day
 df = st.session_state.df
 
 # Sidebar Site Selection
-query_params = st.experimental_get_query_params()
+query_params = st.query_params()
 current_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
