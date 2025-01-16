@@ -18,7 +18,7 @@ default_boundaries = {
     "Flow/Return": {"min": 10, "max": 70},
     "Outdoor": {"min": -10, "max": 30},
     "Indoor": {"min": 15, "max": 26},
-    "Delta T": {"min": -10, "max": 10},
+    "Delta T": {"min": -10, "max": 10},  # Added Delta T boundary
 }
 
 # Sidebar expander for range adjustments
@@ -29,8 +29,8 @@ with st.sidebar.expander("Adjust Boundaries"):
     outdoor_max = st.number_input("Outdoor Max", value=default_boundaries["Outdoor"]["max"])
     indoor_min = st.number_input("Indoor Min", value=default_boundaries["Indoor"]["min"])
     indoor_max = st.number_input("Indoor Max", value=default_boundaries["Indoor"]["max"])
-    delta_t_min = st.number_input("Delta T Min", value=default_boundaries["Delta T"]["min"])
-    delta_t_max = st.number_input("Delta T Max", value=default_boundaries["Delta T"]["max"])
+    delta_t_min = st.number_input("Delta T Min", value=default_boundaries["Delta T"]["min"])  # Delta T Min
+    delta_t_max = st.number_input("Delta T Max", value=default_boundaries["Delta T"]["max"])  # Delta T Max
 
 if past_days_new != st.session_state.past_days or 'df' not in st.session_state:
     # --- Auth & Data Fetching ---
@@ -77,11 +77,6 @@ def extract_location(variable_name):
 # --- Main Content ---
 st.title("📊 NISEP Time Series Data")
 
-# Store user-selected variables and sites in session_state
-if 'selected_sites' not in st.session_state:
-    st.session_state.selected_sites = {}
-
-# Iterate through variables and allow users to select sites for each one
 for variable in variable_options:
     # Filter columns corresponding to the current variable (includes both temperature and delta T)
     relevant_columns = [col for col in all_columns if col.startswith(variable)]
@@ -109,26 +104,22 @@ for variable in variable_options:
     if not out_of_range_locations:
         continue  # Skip if no out-of-range data
 
-    # Horizontal checkboxes for filtering locations
+    # Horizontal checkboxes for filtering locations, using multiple columns
     st.write(f"**Select Locations for {variable}**:")
-    
-    # Get the selected sites from session state
-    selected_locations = st.session_state.selected_sites.get(variable, [])
+    selected_locations = []
 
-    # Display checkboxes for each out-of-range location
-    for location in out_of_range_locations:
-        location_id = locations[location]
-        if st.checkbox(location_id, value=location in selected_locations, key=f"checkbox_{variable}_{location_id}"):
-            if location not in selected_locations:
-                selected_locations.append(location)
-        else:
-            if location in selected_locations:
-                selected_locations.remove(location)
+    # Determine how many columns to create (e.g., 3 columns if there are 6 locations)
+    num_columns = len(out_of_range_locations)
+    columns = st.columns(num_columns)  # Create the columns dynamically
 
-    # Save the selected locations to session state
-    st.session_state.selected_sites[variable] = selected_locations
+    # Create a checkbox for each location across the columns
+    for idx, col in enumerate(out_of_range_locations):
+        location_id = locations[col]
+        with columns[idx % num_columns]:  # Distribute checkboxes across columns
+            if st.checkbox(location_id, value=True, key=f"checkbox_{variable}_{location_id}"):
+                selected_locations.append(col)
 
-    # Create the plot only for selected sites
+    # Create the plot
     fig = go.Figure()
     for column in relevant_columns:
         # Skip if the location is not selected
