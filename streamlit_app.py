@@ -49,7 +49,7 @@ if 'variable_2' not in st.session_state:
 current_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
-    st.session_state.display_site
+    None
 )
 # Detect if the site selection has changed
 if set(current_display_site) != set(st.session_state.display_site):
