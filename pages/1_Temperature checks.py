@@ -18,7 +18,7 @@ default_boundaries = {
     "Flow/Return": {"min": 10, "max": 70},
     "Outdoor": {"min": -10, "max": 30},
     "Indoor": {"min": 15, "max": 26},
-    "Delta T": {"min": -10, "max": 10},
+    "Delta T": {"min": -10, "max": 10},  # Added Delta T boundary
 }
 
 # Sidebar expander for range adjustments
@@ -29,8 +29,8 @@ with st.sidebar.expander("Adjust Boundaries"):
     outdoor_max = st.number_input("Outdoor Max", value=default_boundaries["Outdoor"]["max"])
     indoor_min = st.number_input("Indoor Min", value=default_boundaries["Indoor"]["min"])
     indoor_max = st.number_input("Indoor Max", value=default_boundaries["Indoor"]["max"])
-    delta_t_min = st.number_input("Delta T Min", value=default_boundaries["Delta T"]["min"])
-    delta_t_max = st.number_input("Delta T Max", value=default_boundaries["Delta T"]["max"])
+    delta_t_min = st.number_input("Delta T Min", value=default_boundaries["Delta T"]["min"])  # Delta T Min
+    delta_t_max = st.number_input("Delta T Max", value=default_boundaries["Delta T"]["max"])  # Delta T Max
 
 if past_days_new != st.session_state.past_days or 'df' not in st.session_state:
     # --- Auth & Data Fetching ---
@@ -77,11 +77,13 @@ def extract_location(variable_name):
 # --- Main Content ---
 st.title("📊 NISEP Time Series Data")
 
-# Iterate through variables and create plots
 for variable in variable_options:
     # Filter columns corresponding to the current variable (includes both temperature and delta T)
     relevant_columns = [col for col in all_columns if col.startswith(variable)]
     if not relevant_columns:
+        continue
+    # Prepare the data
+    if variable == "Temperature":
         continue
 
     df = df_sesh[["datetime"] + relevant_columns]
@@ -93,41 +95,69 @@ for variable in variable_options:
     # Extract location IDs
     locations = {col: extract_location(col) for col in relevant_columns}
 
-    # Initialize the figure
+    # Determine locations with out-of-range data, including Delta T
+    out_of_range_locations = [
+        col for col in relevant_columns
+        if ((df[col] < conditions["min"]) | (df[col] > conditions["max"])).any()
+    ]
+
+    if not out_of_range_locations:
+        continue  # Skip if no out-of-range data
+
+    # Horizontal checkboxes for filtering locations, using multiple columns
+    st.write(f"**Select Locations for {variable}**:")
+    selected_locations = []
+
+    # Determine how many columns to create (e.g., 3 columns if there are 6 locations)
+    num_columns = len(out_of_range_locations)
+    columns = st.columns(num_columns)  # Create the columns dynamically
+
+    # Create a checkbox for each location across the columns
+    for idx, col in enumerate(out_of_range_locations):
+        location_id = locations[col]
+        with columns[idx % num_columns]:  # Distribute checkboxes across columns
+            if st.checkbox(location_id, value=True, key=f"checkbox_{variable}_{location_id}"):
+                selected_locations.append(col)
+
+    # Create the plot
     fig = go.Figure()
-
-    # Add traces for the relevant columns (only if out-of-range data exists)
     for column in relevant_columns:
-        # Check if there are any out-of-range values for this column
-        out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
-
-        # If there are no out-of-range values, skip this column
-        if not out_of_range_mask.any():
+        # Skip if the location is not selected
+        if column not in selected_locations:
             continue
 
-        # Generate color list based on whether data points are within the allowed range
-        color_list = ['red' if val < conditions["min"] or val > conditions["max"] else 'blue' for val in df[column]]
+        # Identify in-range and out-of-range data
+        out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
+        in_range_mask = ~out_of_range_mask
 
-        # Add trace for this variable (with dynamic marker colors)
+        # Add in-range data (hidden in legend)
         fig.add_trace(go.Scatter(
             x=df["datetime"],
-            y=df[column],
-            mode="markers+lines",
+            y=df[column].where(in_range_mask),
+            mode="lines",
             name=f"{locations[column]}",
-            line=dict(color="gray"),
-            marker=dict(color=color_list),  # Dynamically change color of markers
+            line=dict(width=2, color="blue"),
+            showlegend=False  # Hide in-range traces from the legend
         ))
 
-    # Only display the plot if there are any traces (i.e., data points outside the range)
-    if fig.data:
-        fig.update_layout(
-            title=f"{variable} Data",
-            xaxis_title="Datetime",
-            yaxis_title="Temperature (°C)",
-            legend_title="Locations",
-            template="plotly_white",
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        # Add out-of-range data
+        fig.add_trace(go.Scatter(
+            x=df["datetime"],
+            y=df[column].where(out_of_range_mask),
+            mode="lines",
+            name=f"{locations[column]}",
+            line=dict(width=3, color="red"),
+        ))
+
+    fig.update_layout(
+        title=f"{variable} Data",
+        xaxis_title="Datetime",
+        yaxis_title="Temperature (°C)",
+        legend_title="Out-of-Range Locations",
+        template="plotly_white",
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
