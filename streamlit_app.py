@@ -44,6 +44,15 @@ def update_data(past_days, current_display_site, current_variable_1, current_var
         col for col in site_columns if col.split(" (")[0].strip() in current_variable_1 + current_variable_2
     ]
 
+    # Update session state only after data update is complete
+    st.session_state.df = df
+    st.session_state.site_columns = site_columns
+    st.session_state.variable_options = variable_options
+    st.session_state.filtered_columns = filtered_columns
+    st.session_state.current_display_site = current_display_site
+    st.session_state.current_variable_1 = current_variable_1
+    st.session_state.current_variable_2 = current_variable_2
+
     return df, site_columns, variable_options, filtered_columns
 
 
@@ -71,13 +80,9 @@ if (
     or 'current_variable_2' not in st.session_state
     or st.session_state.current_variable_2 != current_variable_2
 ):
-    st.session_state.df = df
-    st.session_state.site_columns = site_columns
-    st.session_state.variable_options = variable_options
-    st.session_state.filtered_columns = filtered_columns
-    st.session_state.current_display_site = current_display_site
-    st.session_state.current_variable_1 = current_variable_1
-    st.session_state.current_variable_2 = current_variable_2
+    df, site_columns, variable_options, filtered_columns = update_data(
+        past_days, current_display_site, current_variable_1, current_variable_2
+    )
 
 # Sidebar Site Selection
 current_display_site = st.sidebar.multiselect(
