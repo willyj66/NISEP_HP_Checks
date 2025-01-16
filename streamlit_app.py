@@ -20,97 +20,79 @@ def cache_lookup():
 lookup_df = cache_lookup()
 all_sites = lookup_df.siteNamespace.unique()
 
-
-# --- Helper Functions ---
-def update_data(past_days, current_display_site, current_variable_1, current_variable_2):
-    end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
-    start_time = end_time - timedelta(days=past_days)
-
-    df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
-
-    # Filter available columns based on the selected sites
-    if current_display_site:
-        site_columns = [
-            col for col in df.columns if any(f"({site})" in col for site in current_display_site)
-        ]
-    else:
-        site_columns = df.columns[1:]  # Exclude 'datetime'
-
-    # Dynamically update the available variables based on the filtered columns
-    variable_options = list(set([col.split(" (")[0].strip() for col in site_columns]))
-
-    # Filter the dataframe to include only relevant columns
-    filtered_columns = ["datetime"] + [
-        col for col in site_columns if col.split(" (")[0].strip() in current_variable_1 + current_variable_2
-    ]
-
-    # Update session state only after data update is complete
-    st.session_state.df = df
-    st.session_state.site_columns = site_columns
-    st.session_state.variable_options = variable_options
-    st.session_state.filtered_columns = filtered_columns
-
-    return df, site_columns, variable_options, filtered_columns
-
-
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 
 # Days Displayed Input
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
+if 'past_days' not in st.session_state or st.session_state.past_days != past_days:
+    # Calculate start and end time
+    end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
+    start_time = end_time - timedelta(days=past_days)
 
-# Initialize empty lists for selections if not in session state
-if 'current_display_site' not in st.session_state:
-    st.session_state.current_display_site = []
-if 'current_variable_1' not in st.session_state:
-    st.session_state.current_variable_1 = []
-if 'current_variable_2' not in st.session_state:
-    st.session_state.current_variable_2 = []
+    # Fetch the time series data
+    st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
+    st.session_state.past_days = past_days
+
+# Retrieve data from session state
+df = st.session_state.df
+
+# --- Persist Selections ---
+if 'display_site' not in st.session_state:
+    st.session_state.display_site = []
+if 'variable_1' not in st.session_state:
+    st.session_state.variable_1 = []
+if 'variable_2' not in st.session_state:
+    st.session_state.variable_2 = []
 
 # Sidebar Site Selection
 current_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
-    default=st.session_state.current_display_site,
-    key="display_site",
+    default=st.session_state.display_site
 )
+
+# Update session state only if the selection changes
+if set(current_display_site) != set(st.session_state.display_site):
+    st.session_state.display_site = current_display_site
+
+# Filter available columns based on the selected sites
+if st.session_state.display_site:
+    site_columns = [
+        col for col in df.columns if any(f"({site})" in col for site in st.session_state.display_site)
+    ]
+else:
+    site_columns = df.columns[1:]  # Exclude 'datetime'
+
+# Dynamically update the available variables based on the filtered columns
+variable_options = list(set([col.split(" (")[0].strip() for col in site_columns]))
 
 # Sidebar Variable Selection
 current_variable_1 = st.sidebar.multiselect(
     "Select Variable 1 (Y1)",
-    st.session_state.variable_options,
-    default=st.session_state.current_variable_1,
-    key="variable_1",
+    variable_options,
+    default=st.session_state.variable_1,
+    key="variable_1_select"
 )
 
 current_variable_2 = st.sidebar.multiselect(
     "Select Variable 2 (Y2)",
-    st.session_state.variable_options,
-    default=st.session_state.current_variable_2,
-    key="variable_2",
+    variable_options,
+    default=st.session_state.variable_2,
+    key="variable_2_select"
 )
 
-# Check if selections have changed before triggering an update
-if (
-    current_display_site != st.session_state.current_display_site
-    or current_variable_1 != st.session_state.current_variable_1
-    or current_variable_2 != st.session_state.current_variable_2
-):
-    # Update the data when selections change
-    df, site_columns, variable_options, filtered_columns = update_data(
-        past_days, current_display_site, current_variable_1, current_variable_2
-    )
+# Update session state only if the selection changes
+if set(current_variable_1) != set(st.session_state.variable_1):
+    st.session_state.variable_1 = current_variable_1
 
-    # Update session state with the new selections
-    st.session_state.current_display_site = current_display_site
-    st.session_state.current_variable_1 = current_variable_1
-    st.session_state.current_variable_2 = current_variable_2
-else:
-    # Use cached data if no changes in selections
-    df = st.session_state.df
-    site_columns = st.session_state.site_columns
-    variable_options = st.session_state.variable_options
-    filtered_columns = st.session_state.filtered_columns
+if set(current_variable_2) != set(st.session_state.variable_2):
+    st.session_state.variable_2 = current_variable_2
+
+# Filter the dataframe to include only relevant columns
+filtered_columns = ["datetime"] + [
+    col for col in site_columns if col.split(" (")[0].strip() in st.session_state.variable_1 + st.session_state.variable_2
+]
 
 # --- Data Processing ---
 if df.empty:
@@ -122,38 +104,37 @@ else:
     # --- Main Content ---
     st.title("📊 NISEP Time Series Data")
 
-    if current_variable_1 or current_variable_2:
+    if st.session_state.variable_1 or st.session_state.variable_2:
         # Create the Plotly figure
         fig = go.Figure()
 
         # Add traces for Variable 1 (Y1)
-        for var in current_variable_1:
+        for var in st.session_state.variable_1:
             cols = [col for col in site_columns if col.startswith(var)]
             for col in cols:
                 fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y1)", yaxis="y1"))
 
         # Add traces for Variable 2 (Y2)
-        for var in current_variable_2:
+        for var in st.session_state.variable_2:
             cols = [col for col in site_columns if col.startswith(var)]
             for col in cols:
                 fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
-
         # Configure axes with dynamic labels and place legend to the right of the plot
         fig.update_layout(
             title=f"Heat pump data over the past {st.session_state.past_days} days",
             xaxis=dict(title="Datetime"),
-            yaxis=dict(title=", ".join(current_variable_1) if current_variable_1 else "Y1 Variables"),
+            yaxis=dict(title=", ".join(st.session_state.variable_1) if st.session_state.variable_1 else "Y1 Variables"),
             yaxis2=dict(
-                title=", ".join(current_variable_2) if current_variable_2 else "Y2 Variables",
+                title=", ".join(st.session_state.variable_2) if st.session_state.variable_2 else "Y2 Variables",
                 overlaying="y",
                 side="right"
             ),
             legend=dict(
                 orientation="v",  # Vertical orientation
-                x=1.05,          # Place it slightly to the right of the plot
-                y=1,             # Align it to the top
-                xanchor="left",  # Anchor it from the left
-                yanchor="top"   # Anchor it from the top
+                x=1.05,           # Place it slightly to the right of the plot
+                y=1,              # Align it to the top
+                xanchor="left",   # Anchor it from the left
+                yanchor="top"     # Anchor it from the top
             )
         )
         st.plotly_chart(fig, use_container_width=True)
