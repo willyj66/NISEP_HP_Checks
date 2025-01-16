@@ -23,9 +23,9 @@ all_sites = lookup_df.siteNamespace.unique()
 # --- Helper Function to Update Query Params ---
 def set_query_param(url_key, session_state_key):
     if st.session_state[session_state_key]:
-        st.experimental_set_query_params(**{url_key: st.session_state[session_state_key]})
+        st.query_params(**{url_key: st.session_state[session_state_key]})
     else:
-        st.experimental_set_query_params()
+        st.query_params()
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
