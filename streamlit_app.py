@@ -18,7 +18,6 @@ def cache_lookup():
     return getLookup(auth_url, username, password)
 
 lookup_df = cache_lookup()
-all_variables = lookup_df.name.unique()
 all_sites = lookup_df.siteNamespace.unique()
 
 # --- Sidebar for Control ---
@@ -39,7 +38,6 @@ if 'past_days' not in st.session_state or st.session_state.past_days != past_day
 df = st.session_state.df
 
 # --- Persist Selections ---
-# Initialize session state for sites and variables
 if 'display_site' not in st.session_state:
     st.session_state.display_site = []
 if 'variable_1' not in st.session_state:
@@ -48,25 +46,14 @@ if 'variable_2' not in st.session_state:
     st.session_state.variable_2 = []
 
 # Temporary variables for UI selections
-temp_display_site = st.sidebar.multiselect(
+current_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
     st.session_state.display_site
 )
-temp_variable_1 = st.sidebar.multiselect(
-    "Select Variable 1 (Y1)",
-    [],
-    st.session_state.variable_1
-)
-temp_variable_2 = st.sidebar.multiselect(
-    "Select Variable 2 (Y2)",
-    [],
-    st.session_state.variable_2
-)
-
-# Update buttons for each input
-if st.sidebar.button("Update Sites"):
-    st.session_state.display_site = temp_display_site
+# Detect if the site selection has changed
+if set(current_display_site) != set(st.session_state.display_site):
+    st.session_state.display_site = current_display_site
 
 # Filter available columns based on the selected sites
 if st.session_state.display_site:
@@ -79,9 +66,23 @@ else:
 # Dynamically update the available variables based on the filtered columns
 variable_options = list(set([col.split(" (")[0].strip() for col in site_columns]))
 
-if st.sidebar.button("Update Variables"):
-    st.session_state.variable_1 = temp_variable_1
-    st.session_state.variable_2 = temp_variable_2
+current_variable_1 = st.sidebar.multiselect(
+    "Select Variable 1 (Y1)",
+    variable_options,
+    st.session_state.variable_1
+)
+current_variable_2 = st.sidebar.multiselect(
+    "Select Variable 2 (Y2)",
+    variable_options,
+    st.session_state.variable_2
+)
+
+# Detect changes in variable selections
+if set(current_variable_1) != set(st.session_state.variable_1):
+    st.session_state.variable_1 = current_variable_1
+
+if set(current_variable_2) != set(st.session_state.variable_2):
+    st.session_state.variable_2 = current_variable_2
 
 # Filter the dataframe to include only relevant columns
 filtered_columns = ["datetime"] + [
