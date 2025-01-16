@@ -44,11 +44,17 @@ if past_days_new != st.session_state.past_days or 'df' not in st.session_state:
 
 # Retrieve the data from session state
 df_sesh = st.session_state.df
+
+# Dynamically filter temperature and delta T columns
 temperature_columns = df_sesh.filter(like='Temperature').columns
+delta_t_columns = df_sesh.filter(like='Delta T').columns  # Filter Delta T columns
+
+# Combine temperature and delta T columns
+all_columns = list(temperature_columns) + list(delta_t_columns)
 
 # Dynamically update the available variables based on the filtered columns
 variable_options = list(set([
-    col.split(" (")[0].strip() for col in temperature_columns
+    col.split(" (")[0].strip() for col in all_columns
 ]))
 
 # Function to determine min/max values based on variable type
@@ -57,8 +63,8 @@ def get_conditions(variable):
         return {"min": flow_min, "max": flow_max}
     elif "Outdoor" in variable:
         return {"min": outdoor_min, "max": outdoor_max}
-    elif "Delta T" in variable:
-        return {"min": delta_t_min, "max": delta_t_max}  # Added condition for Delta T
+    elif "Delta T" in variable:  # Added condition for Delta T
+        return {"min": delta_t_min, "max": delta_t_max}
     else:
         return {"min": indoor_min, "max": indoor_max}
 
@@ -72,8 +78,8 @@ def extract_location(variable_name):
 st.title("📊 NISEP Time Series Data")
 
 for variable in variable_options:
-    # Filter columns corresponding to the current variable
-    relevant_columns = [col for col in temperature_columns if col.startswith(variable)]
+    # Filter columns corresponding to the current variable (includes both temperature and delta T)
+    relevant_columns = [col for col in all_columns if col.startswith(variable)]
     if not relevant_columns:
         continue
     # Prepare the data
