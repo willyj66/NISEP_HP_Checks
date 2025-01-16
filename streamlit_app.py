@@ -45,14 +45,13 @@ if 'variable_1' not in st.session_state:
 if 'variable_2' not in st.session_state:
     st.session_state.variable_2 = []
 
-# Sidebar Site Selection
+# Temporary variables for UI selections
 current_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
-    default=st.session_state.display_site
+    st.session_state.display_site
 )
-
-# Update session state only if the selection changes
+# Detect if the site selection has changed
 if set(current_display_site) != set(st.session_state.display_site):
     st.session_state.display_site = current_display_site
 
@@ -67,22 +66,18 @@ else:
 # Dynamically update the available variables based on the filtered columns
 variable_options = list(set([col.split(" (")[0].strip() for col in site_columns]))
 
-# Sidebar Variable Selection
 current_variable_1 = st.sidebar.multiselect(
     "Select Variable 1 (Y1)",
     variable_options,
-    default=st.session_state.variable_1,
-    key="variable_1_select"
+    st.session_state.variable_1
 )
-
 current_variable_2 = st.sidebar.multiselect(
     "Select Variable 2 (Y2)",
     variable_options,
-    default=st.session_state.variable_2,
-    key="variable_2_select"
+    st.session_state.variable_2
 )
 
-# Update session state only if the selection changes
+# Detect changes in variable selections
 if set(current_variable_1) != set(st.session_state.variable_1):
     st.session_state.variable_1 = current_variable_1
 
