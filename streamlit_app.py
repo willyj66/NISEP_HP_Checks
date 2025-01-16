@@ -23,9 +23,10 @@ all_sites = lookup_df.siteNamespace.unique()
 # --- Helper Function to Update Query Params ---
 def set_query_param(url_key, session_state_key):
     if st.session_state[session_state_key]:
-        st.query_params(**{url_key: st.session_state[session_state_key]})
+        st.query_params[url_key] = st.session_state[session_state_key]
     else:
-        st.query_params()
+        if url_key in st.query_params:
+            del st.query_params[url_key]
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
@@ -43,7 +44,7 @@ if 'past_days' not in st.session_state or st.session_state.past_days != past_day
 df = st.session_state.df
 
 # Sidebar Site Selection
-query_params = st.query_params()
+query_params = st.query_params.to_dict()
 current_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
