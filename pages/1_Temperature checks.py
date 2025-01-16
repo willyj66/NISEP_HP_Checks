@@ -3,20 +3,22 @@ import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from getNISEPdata import getTimeseries
+
 # Page layout configuration
 st.set_page_config(layout="wide")
+
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
 if 'past_days' not in st.session_state:
     st.session_state.past_days = 1
 past_days_new = st.sidebar.number_input("Days Displayed", 1, None, st.session_state.past_days)
 
-
 # Updated default boundary settings
 default_boundaries = {
     "Flow/Return": {"min": 10, "max": 70},
     "Outdoor": {"min": -10, "max": 30},
     "Indoor": {"min": 15, "max": 26},
+    "Delta T": {"min": -10, "max": 10},  # Added Delta T boundary
 }
 
 # Sidebar expander for range adjustments
@@ -27,6 +29,8 @@ with st.sidebar.expander("Adjust Boundaries"):
     outdoor_max = st.number_input("Outdoor Max", value=default_boundaries["Outdoor"]["max"])
     indoor_min = st.number_input("Indoor Min", value=default_boundaries["Indoor"]["min"])
     indoor_max = st.number_input("Indoor Max", value=default_boundaries["Indoor"]["max"])
+    delta_t_min = st.number_input("Delta T Min", value=default_boundaries["Delta T"]["min"])  # Delta T Min
+    delta_t_max = st.number_input("Delta T Max", value=default_boundaries["Delta T"]["max"])  # Delta T Max
 
 if past_days_new != st.session_state.past_days or 'df' not in st.session_state:
     # --- Auth & Data Fetching ---
@@ -53,6 +57,8 @@ def get_conditions(variable):
         return {"min": flow_min, "max": flow_max}
     elif "Outdoor" in variable:
         return {"min": outdoor_min, "max": outdoor_max}
+    elif "Delta T" in variable:
+        return {"min": delta_t_min, "max": delta_t_max}  # Added condition for Delta T
     else:
         return {"min": indoor_min, "max": indoor_max}
 
@@ -71,7 +77,7 @@ for variable in variable_options:
     if not relevant_columns:
         continue
     # Prepare the data
-    if variable=="Temperature":
+    if variable == "Temperature":
         continue
 
     df = df_sesh[["datetime"] + relevant_columns]
@@ -83,7 +89,7 @@ for variable in variable_options:
     # Extract location IDs
     locations = {col: extract_location(col) for col in relevant_columns}
 
-    # Determine locations with out-of-range data
+    # Determine locations with out-of-range data, including Delta T
     out_of_range_locations = [
         col for col in relevant_columns
         if ((df[col] < conditions["min"]) | (df[col] > conditions["max"])).any()
@@ -95,11 +101,11 @@ for variable in variable_options:
     # Horizontal checkboxes for filtering locations, using multiple columns
     st.write(f"**Select Locations for {variable}**:")
     selected_locations = []
-    
+
     # Determine how many columns to create (e.g., 3 columns if there are 6 locations)
     num_columns = len(out_of_range_locations)
     columns = st.columns(num_columns)  # Create the columns dynamically
-    
+
     # Create a checkbox for each location across the columns
     for idx, col in enumerate(out_of_range_locations):
         location_id = locations[col]
