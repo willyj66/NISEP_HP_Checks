@@ -15,10 +15,10 @@ password = st.secrets.get("Login", {}).get("Password", "")
 # Cache Lookup Data
 @st.cache_data
 def cache_lookup():
-    return getLookup(auth_url, username, password)
+    lookup_df =  getLookup(auth_url, username, password)
+    return lookup_df.siteNamespace.unique()
 
-lookup_df = cache_lookup()
-all_sites = lookup_df.siteNamespace.unique()
+all_sites = cache_lookup()
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
