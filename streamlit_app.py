@@ -116,9 +116,9 @@ else:
         fig.update_layout(
             title=f"Heat pump data over the past {st.session_state.past_days} days",
             xaxis=dict(title="Datetime"),
-            yaxis=dict(title="Y1 Variables"),
+            yaxis=dict(title=variable_1),
             yaxis2=dict(
-                title="Y2 Variables",
+                title=variable_2,
                 overlaying="y",
                 side="right"
             ),
