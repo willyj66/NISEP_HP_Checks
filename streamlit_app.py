@@ -111,14 +111,13 @@ else:
             cols = [col for col in site_columns if col.startswith(var)]
             for col in cols:
                 fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
-
-        # Configure axes and place legend to the right of the plot
+        # Configure axes with dynamic labels and place legend to the right of the plot
         fig.update_layout(
             title=f"Heat pump data over the past {st.session_state.past_days} days",
             xaxis=dict(title="Datetime"),
-            yaxis=dict(title=variable_1),
+            yaxis=dict(title=", ".join(variable_1) if variable_1 else "Y1 Variables"),
             yaxis2=dict(
-                title=variable_2,
+                title=", ".join(variable_2) if variable_2 else "Y2 Variables",
                 overlaying="y",
                 side="right"
             ),
