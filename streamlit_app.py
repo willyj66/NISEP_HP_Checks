@@ -114,3 +114,5 @@ if update_button:  # Only update the graph when the button is pressed
         # --- Raw Data Preview ---
         with st.expander("🗂️ Show Raw Data"):
             st.dataframe(df[filtered_columns])  # Show filtered data for the selected columns
+else:
+    st.spinner()
