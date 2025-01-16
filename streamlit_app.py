@@ -112,7 +112,7 @@ else:
             for col in cols:
                 fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
 
-        # Configure axes
+        # Configure axes and place legend to the right of the plot
         fig.update_layout(
             title=f"Heat pump data over the past {st.session_state.past_days} days",
             xaxis=dict(title="Datetime"),
@@ -122,7 +122,13 @@ else:
                 overlaying="y",
                 side="right"
             ),
-            legend=dict(orientation="h", x=0, y=1.1)
+            legend=dict(
+                orientation="v",  # Vertical orientation
+                x=1.05,           # Place it slightly to the right of the plot
+                y=1,              # Align it to the top
+                xanchor="left",   # Anchor it from the left
+                yanchor="top"     # Anchor it from the top
+            )
         )
         st.plotly_chart(fig, use_container_width=True)
     else:
