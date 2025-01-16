@@ -62,6 +62,14 @@ st.sidebar.title("Controls")
 # Days Displayed Input
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
 
+# Initialize empty lists for selections if not in session state
+if 'current_display_site' not in st.session_state:
+    st.session_state.current_display_site = []
+if 'current_variable_1' not in st.session_state:
+    st.session_state.current_variable_1 = []
+if 'current_variable_2' not in st.session_state:
+    st.session_state.current_variable_2 = []
+
 # Retrieve data from session state or update with new selections
 if 'past_days' not in st.session_state or st.session_state.past_days != past_days:
     df, site_columns, variable_options, filtered_columns = update_data(past_days, [], [], [])
@@ -73,11 +81,8 @@ else:
 
 # Update session state with selections if they have changed
 if (
-    'current_display_site' not in st.session_state
-    or st.session_state.current_display_site != current_display_site
-    or 'current_variable_1' not in st.session_state
+    st.session_state.current_display_site != current_display_site
     or st.session_state.current_variable_1 != current_variable_1
-    or 'current_variable_2' not in st.session_state
     or st.session_state.current_variable_2 != current_variable_2
 ):
     df, site_columns, variable_options, filtered_columns = update_data(
