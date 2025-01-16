@@ -64,32 +64,32 @@ if update_button:  # Only update the graph when the button is pressed
         filtered_columns = ["datetime"] + [
             col for col in site_columns if col.split(" (")[0].strip() in current_variable_1 + current_variable_2
         ]
-    
+
         if df.empty:
             st.warning("No data available for the selected parameters.")
         else:
             # Ensure 'datetime' is in proper format
             df['datetime'] = pd.to_datetime(df['datetime'])
-    
+
             # --- Main Content ---
             st.title("📊 NISEP Time Series Data")
-    
+
             if current_variable_1 or current_variable_2:
                 # Create the Plotly figure
                 fig = go.Figure()
-    
+
                 # Add traces for Variable 1 (Y1)
                 for var in current_variable_1:
                     cols = [col for col in site_columns if col.startswith(var)]
                     for col in cols:
                         fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y1)", yaxis="y1"))
-    
+
                 # Add traces for Variable 2 (Y2)
                 for var in current_variable_2:
                     cols = [col for col in site_columns if col.startswith(var)]
                     for col in cols:
                         fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
-    
+
                 # Configure axes with dynamic labels and place legend to the right of the plot
                 fig.update_layout(
                     title=f"Heat pump data over the past {past_days} days",
@@ -111,9 +111,10 @@ if update_button:  # Only update the graph when the button is pressed
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.warning("Please select at least one variable to plot.")
-    
+
             # --- Raw Data Preview ---
             with st.expander("🗂️ Show Raw Data"):
                 st.dataframe(df[filtered_columns])  # Show filtered data for the selected columns
 else:
+    st.title("BALLOONS!")
     st.balloons()
