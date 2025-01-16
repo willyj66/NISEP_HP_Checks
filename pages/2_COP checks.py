@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from getNISEPdata import getTimeseries
 from datetime import datetime, timedelta
+st.set_page_config(layout="wide")
 
 def calculate_cop(data):
     df_numeric = data.drop(columns=['datetime'])
