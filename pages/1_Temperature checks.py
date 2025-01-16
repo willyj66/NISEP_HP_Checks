@@ -93,10 +93,18 @@ for variable in variable_options:
     # Extract location IDs
     locations = {col: extract_location(col) for col in relevant_columns}
 
-    # Create the plot
+    # Initialize the figure
     fig = go.Figure()
 
+    # Add traces for the relevant columns (only if out-of-range data exists)
     for column in relevant_columns:
+        # Check if there are any out-of-range values for this column
+        out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
+
+        # If there are no out-of-range values, skip this column
+        if not out_of_range_mask.any():
+            continue
+
         # Generate color list based on whether data points are within the allowed range
         color_list = ['red' if val < conditions["min"] or val > conditions["max"] else 'blue' for val in df[column]]
 
@@ -110,15 +118,16 @@ for variable in variable_options:
             marker=dict(color=color_list),  # Dynamically change color of markers
         ))
 
-    fig.update_layout(
-        title=f"{variable} Data",
-        xaxis_title="Datetime",
-        yaxis_title="Temperature (°C)",
-        legend_title="Locations",
-        template="plotly_white",
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
+    # Only display the plot if there are any traces (i.e., data points outside the range)
+    if fig.data:
+        fig.update_layout(
+            title=f"{variable} Data",
+            xaxis_title="Datetime",
+            yaxis_title="Temperature (°C)",
+            legend_title="Locations",
+            template="plotly_white",
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
