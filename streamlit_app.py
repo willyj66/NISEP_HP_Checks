@@ -42,17 +42,21 @@ df = st.session_state.df
 if 'display_site' not in st.session_state:
     st.session_state.display_site = []
 
-display_site = st.sidebar.multiselect(
+# Temporary variable for site selection
+temp_display_site = st.sidebar.multiselect(
     "Select Site",
     all_sites,
     st.session_state.display_site
 )
-st.session_state.display_site = display_site  # Persist site selection
+
+# Button to update state for sites
+if st.sidebar.button("Update Sites"):
+    st.session_state.display_site = temp_display_site  # Persist site selection
 
 # Filter available columns based on the selected sites
-if display_site:
+if st.session_state.display_site:
     site_columns = [
-        col for col in df.columns if any(f"({site})" in col for site in display_site)
+        col for col in df.columns if any(f"({site})" in col for site in st.session_state.display_site)
     ]
 else:
     site_columns = df.columns[1:]  # Exclude 'datetime'
@@ -67,23 +71,26 @@ if 'variable_1' not in st.session_state:
 if 'variable_2' not in st.session_state:
     st.session_state.variable_2 = []
 
-variable_1 = st.sidebar.multiselect(
+# Temporary variables for variable selections
+temp_variable_1 = st.sidebar.multiselect(
     "Select Variable 1 (Y1)",
     variable_options,
     st.session_state.variable_1
 )
-st.session_state.variable_1 = variable_1  # Persist Variable 1 selection
-
-variable_2 = st.sidebar.multiselect(
+temp_variable_2 = st.sidebar.multiselect(
     "Select Variable 2 (Y2)",
     variable_options,
     st.session_state.variable_2
 )
-st.session_state.variable_2 = variable_2  # Persist Variable 2 selection
+
+# Button to update state for variables
+if st.sidebar.button("Update Variables"):
+    st.session_state.variable_1 = temp_variable_1
+    st.session_state.variable_2 = temp_variable_2
 
 # Filter the dataframe to include only relevant columns
 filtered_columns = ["datetime"] + [
-    col for col in site_columns if col.split(" (")[0].strip() in variable_1 + variable_2
+    col for col in site_columns if col.split(" (")[0].strip() in st.session_state.variable_1 + st.session_state.variable_2
 ]
 
 # --- Data Processing ---
@@ -96,18 +103,18 @@ else:
     # --- Main Content ---
     st.title("📊 NISEP Time Series Data")
 
-    if variable_1 or variable_2:
+    if st.session_state.variable_1 or st.session_state.variable_2:
         # Create the Plotly figure
         fig = go.Figure()
 
         # Add traces for Variable 1 (Y1)
-        for var in variable_1:
+        for var in st.session_state.variable_1:
             cols = [col for col in site_columns if col.startswith(var)]
             for col in cols:
                 fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y1)", yaxis="y1"))
 
         # Add traces for Variable 2 (Y2)
-        for var in variable_2:
+        for var in st.session_state.variable_2:
             cols = [col for col in site_columns if col.startswith(var)]
             for col in cols:
                 fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
@@ -115,9 +122,9 @@ else:
         fig.update_layout(
             title=f"Heat pump data over the past {st.session_state.past_days} days",
             xaxis=dict(title="Datetime"),
-            yaxis=dict(title=", ".join(variable_1) if variable_1 else "Y1 Variables"),
+            yaxis=dict(title=", ".join(st.session_state.variable_1) if st.session_state.variable_1 else "Y1 Variables"),
             yaxis2=dict(
-                title=", ".join(variable_2) if variable_2 else "Y2 Variables",
+                title=", ".join(st.session_state.variable_2) if st.session_state.variable_2 else "Y2 Variables",
                 overlaying="y",
                 side="right"
             ),
