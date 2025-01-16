@@ -59,7 +59,7 @@ update_button = st.sidebar.button("Update Graph")
 
 # --- Data Processing ---
 if update_button:  # Only update the graph when the button is pressed
-    with st.spinner():
+    with st.spinner("(com)Plotting!"):
         # Filter the dataframe to include only relevant columns
         filtered_columns = ["datetime"] + [
             col for col in site_columns if col.split(" (")[0].strip() in current_variable_1 + current_variable_2
@@ -116,5 +116,5 @@ if update_button:  # Only update the graph when the button is pressed
             with st.expander("🗂️ Show Raw Data"):
                 st.dataframe(df[filtered_columns])  # Show filtered data for the selected columns
 else:
-    st.title("BALLOONS!")
+    st.info("BALLOONS!")
     st.balloons()
