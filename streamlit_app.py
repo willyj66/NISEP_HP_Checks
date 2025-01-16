@@ -39,7 +39,15 @@ if 'past_days' not in st.session_state or st.session_state.past_days != past_day
 df = st.session_state.df
 
 # Sidebar Site Selection
-display_site = st.sidebar.multiselect("Select Site", all_sites, all_sites)
+if 'display_site' not in st.session_state:
+    st.session_state.display_site = []
+
+display_site = st.sidebar.multiselect(
+    "Select Site",
+    all_sites,
+    st.session_state.display_site
+)
+st.session_state.display_site = display_site  # Persist site selection
 
 # Filter available columns based on the selected sites
 if display_site:
@@ -51,8 +59,27 @@ else:
 
 # Dynamically update the available variables based on the filtered columns
 variable_options = list(set([col.split(" (")[0].strip() for col in site_columns]))
-variable_1 = st.sidebar.multiselect("Select Variable 1 (Y1)", variable_options)
-variable_2 = st.sidebar.multiselect("Select Variable 2 (Y2)", variable_options)
+
+# Persist variable selections
+if 'variable_1' not in st.session_state:
+    st.session_state.variable_1 = []
+
+if 'variable_2' not in st.session_state:
+    st.session_state.variable_2 = []
+
+variable_1 = st.sidebar.multiselect(
+    "Select Variable 1 (Y1)",
+    variable_options,
+    st.session_state.variable_1
+)
+st.session_state.variable_1 = variable_1  # Persist Variable 1 selection
+
+variable_2 = st.sidebar.multiselect(
+    "Select Variable 2 (Y2)",
+    variable_options,
+    st.session_state.variable_2
+)
+st.session_state.variable_2 = variable_2  # Persist Variable 2 selection
 
 # Filter the dataframe to include only relevant columns
 filtered_columns = ["datetime"] + [
