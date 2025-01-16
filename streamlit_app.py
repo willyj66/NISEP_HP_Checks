@@ -25,11 +25,19 @@ st.sidebar.title("Controls")
 
 # Days Displayed Input
 past_days = st.sidebar.number_input("Days Displayed", 1, None, 1)
-end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
-start_time = end_time - timedelta(days=past_days)
 
-# Fetch the time series data
-df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
+# Only download data when `past_days` is updated
+if 'df' not in st.session_state or st.session_state.past_days != past_days:
+    # Calculate start and end time
+    end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
+    start_time = end_time - timedelta(days=past_days)
+
+    # Fetch the time series data
+    st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
+    st.session_state.past_days = past_days
+
+# Retrieve data from session state
+df = st.session_state.df
 
 # Temporary variables for UI selections
 current_display_site = st.sidebar.multiselect("Select Site", all_sites, None)
