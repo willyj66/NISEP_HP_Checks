@@ -34,12 +34,11 @@ if 'df' not in st.session_state or st.session_state.past_days != past_days:
 
     # Fetch the time series data
     st.session_state.df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
-    st.write("gaga")
     st.session_state.past_days = past_days
 
 # Retrieve data from session state
 df = st.session_state.df
-
+st.dataframe(df)
 # Temporary variables for UI selections
 current_display_site = st.sidebar.multiselect("Select Site", all_sites, None)
 
