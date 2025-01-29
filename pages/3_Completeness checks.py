@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
+import re  # Import regex
 from getNISEPdata import getTimeseries
 from datetime import datetime, timedelta
+
 st.set_page_config(layout="wide")
 
 def calculate_missing_data_percentage(data):
@@ -24,7 +26,7 @@ password = st.secrets.get("Login", {}).get("Password", "")
 
 end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the start of the day
 
-# Fetch data for all intervals with None as columns argument
+# Fetch data for all intervals
 data_intervals = {
     "Daily": getTimeseries(end_time, end_time - timedelta(days=1), None, None, auth_url, username, password, interval="hour", averaging=averaging),
     "Weekly": getTimeseries(end_time, end_time - timedelta(days=7), None, None, auth_url, username, password, interval="hour", averaging=averaging),
@@ -45,11 +47,13 @@ for interval, data in data_intervals.items():
 # Convert to DataFrame
 missing_data_df = pd.DataFrame(missing_data_percentages).fillna(value=0)
 
-# --- Split Data by Site ---
+# --- Split Data by Site (Fix Site Detection) ---
 site_groups = {}
+
 for row_name in missing_data_df.index:
-    if "(" in row_name and ")" in row_name:
-        site_id = row_name.split("(")[-1].strip(")")
+    match = re.search(r"\((NISEP\d{2})\)", row_name)  # Extracts only NISEPXX format
+    if match:
+        site_id = match.group(1)  # Correctly extracts "NISEP01", "NISEP02", etc.
         if site_id not in site_groups:
             site_groups[site_id] = {}
         site_groups[site_id][row_name] = missing_data_df.loc[row_name]
