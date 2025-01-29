@@ -48,12 +48,10 @@ for interval, data in missing_data_percentages.items():
     non_zero_columns = {k: v for k, v in data.items() if not (data[k] == 0).all()}
     missing_data_percentages[interval] = non_zero_columns
 
-
-# --- Round to one decimal place and replace NaN (if any) with zero ---
+# --- Round to one decimal place ---
 for interval, data in missing_data_percentages.items():
-    # Round the values to one decimal place
     missing_data_percentages[interval] = {
-        k: round(v, 1) if pd.notna(v) else 0 for k, v in data.items()
+        k: round(v, 1) for k, v in data.items()  # Round to one decimal place
     }
 # --- Display Missing Data Percentages ---
 st.title("📊 Missing Data Analysis")
@@ -62,7 +60,7 @@ st.write("Below are the missing data percentages for different time intervals:")
 
 # Display the missing data percentages in a table
 missing_data_df = pd.DataFrame(missing_data_percentages).T
-st.dataframe(missing_data_df)
+st.dataframe(missing_data_df.replace(pd.NA, 0, inplace=True))
 
 # --- Raw Data Preview ---
 with st.expander("🗂️ Show Raw Data"):
