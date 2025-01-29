@@ -27,7 +27,7 @@ end_time = datetime(*datetime.now().timetuple()[:3])  # Today's date from the st
 data_intervals = {
     "Daily": getTimeseries(end_time, end_time - timedelta(days=1), None, None, auth_url, username, password, interval="hour", averaging=averaging),
     "Weekly": getTimeseries(end_time, end_time - timedelta(days=7), None, None, auth_url, username, password, interval="hour", averaging=averaging),
-    "Monthly": getTimeseries(end_time, end_time - timedelta(days=30), None, None, auth_url, username, password, interval="day", averaging=averaging),
+    "Monthly": getTimeseries(end_time, end_time - timedelta(days=30), None, None, auth_url, username, password, interval="hour", averaging=averaging),
 }
 
 # Store missing data percentages
