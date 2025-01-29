@@ -54,7 +54,7 @@ for interval, data in missing_data_percentages.items():
     missing_data_percentages[interval] = {
         k: round(v, 1) for k, v in data.items()  # Round to one decimal place
     }
-    missing_data_percentages[interval][missing_data_percentages[interval].isna()]=0
+    missing_data_percentages[interval][data][missing_data_percentages[interval][data].isna()]=0
 
 # --- Display Missing Data Percentages ---
 st.title("📊 Missing Data Analysis")
