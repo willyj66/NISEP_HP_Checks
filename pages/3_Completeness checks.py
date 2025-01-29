@@ -59,7 +59,7 @@ st.title("📊 Missing Data Analysis")
 st.write("Below are the missing data percentages for different time intervals:")
 
 # Display the missing data percentages in a table
-missing_data_df = pd.DataFrame(missing_data_percentages).T.replace(pd.NA, 0, inplace=True)
+missing_data_df = pd.DataFrame(missing_data_percentages)
 st.dataframe(missing_data_df)
 
 # --- Raw Data Preview ---
