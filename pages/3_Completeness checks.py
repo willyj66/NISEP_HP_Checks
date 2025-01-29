@@ -48,6 +48,11 @@ for interval, data in missing_data_percentages.items():
     non_zero_columns = {k: v for k, v in data.items() if not (data[k] == 0).all()}
     missing_data_percentages[interval] = non_zero_columns
 
+# --- Ensure no None values in the missing data dataframe ---
+# Replace any None (NaN) values with 0% for missing data percentage
+for interval, data in missing_data_percentages.items():
+    missing_data_percentages[interval] = {k: (v if v is not None else 0) for k, v in data.items()}
+
 # --- Display Missing Data Percentages ---
 st.title("📊 Missing Data Analysis")
 
