@@ -325,4 +325,9 @@ def getTimeseries(end_time,start_time,site,variable, auth_url, username, passwor
     timeseries_df.columns = pd.Series(timeseries_df.columns).where(~pd.Series(timeseries_df.columns).duplicated(), 
                                              pd.Series(timeseries_df.columns) + '_' + pd.Series(timeseries_df.columns).duplicated().cumsum().astype(str))
 
+        # Coerce all columns to numeric except the 'datetime' column
+    for col in timeseries_df.columns:
+        if col != 'datetime':  # Exclude datetime column from coercion
+            timeseries_df[col] = pd.to_numeric(timeseries_df[col], errors='coerce')
+
     return timeseries_df
