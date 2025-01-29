@@ -48,19 +48,13 @@ for interval, data in missing_data_percentages.items():
     non_zero_columns = {k: v for k, v in data.items() if not (data[k] == 0).all()}
     missing_data_percentages[interval] = non_zero_columns
 
-# --- Ensure no None values in the missing data dataframe ---
-# Replace any None (NaN) values with 0% for missing data percentage
-for interval, data in missing_data_percentages.items():
-    missing_data_percentages[interval] = {
-        k: (v if pd.notna(v) else 0)  # Replace NaN (None) with 0
-        for k, v in data.items()
-    }
 
-# --- Round to one decimal place ---
+# --- Round to one decimal place and turn na to zero ---
 for interval, data in missing_data_percentages.items():
     missing_data_percentages[interval] = {
         k: round(v, 1) for k, v in data.items()  # Round to one decimal place
     }
+    missing_data_percentages[interval][missing_data_percentages[interval].isna()]=0
 
 # --- Display Missing Data Percentages ---
 st.title("📊 Missing Data Analysis")
