@@ -37,6 +37,13 @@ missing_data_percentages = {}
 for interval, data in data_intervals.items():
     missing_data_percentages[interval] = calculate_missing_data_percentage(data)
 
+# --- Drop columns with all zeros ---
+# Filter out columns with all zeros from the missing data df
+for interval, data in missing_data_percentages.items():
+    # Drop columns with all zeros in the data
+    non_zero_columns = {k: v for k, v in data.items() if not (data[k] == 0).all()}
+    missing_data_percentages[interval] = non_zero_columns
+
 # --- Display Missing Data Percentages ---
 st.title("📊 Missing Data Analysis")
 
