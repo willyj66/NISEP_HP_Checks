@@ -45,7 +45,8 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
         site_name = column.split(" (")[-1].strip(")") if "(" in column else "Unknown"
         if site_name not in result:
             continue  # Skip if the site is not in the provided list of site_names
-        
+        if variable_type=="Temperature":
+            continue
         # Find appropriate bounds
         if "Flow" in variable_type or "Return" in variable_type:
             min_val, max_val = bounds["Flow/Return"]["min"], bounds["Flow/Return"]["max"]
