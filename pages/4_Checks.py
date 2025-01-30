@@ -63,16 +63,16 @@ for site, site_data in filtered_data.items():
                 showlegend=False  # Hide in-range traces from the legend
             ))
 
-    # Plot out of bounds data (red line)
+    # Plot out of bounds data (scatter with joined dots)
     if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
         for col in site_data["out_of_bounds"].columns:
-            # Set out-of-bounds data to None so that Plotly doesn't connect them
             fig.add_trace(go.Scatter(
                 x=site_data["out_of_bounds"].index,
-                y=site_data["out_of_bounds"][col].where(site_data["out_of_bounds"][col].notna()),
-                mode="lines",
+                y=site_data["out_of_bounds"][col],
+                mode="markers+lines",  # Scatter with dots joined by lines
                 name=f"{site} - {col} (out of bounds)",
-                line=dict(color='red', width=2),
+                line=dict(color='red', width=2),  # Red line connecting dots
+                marker=dict(color='red', size=6),  # Red dots
             ))
 
     # Update layout with titles and axes labels
