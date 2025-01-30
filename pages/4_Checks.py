@@ -48,7 +48,7 @@ filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds
 
 # Define grid size based on number of sites
 num_sites = len(filtered_data)
-columns = 3  # Number of columns for the grid (you can adjust this)
+columns = 2  # 2 columns for the grid layout
 rows = (num_sites // columns) + (1 if num_sites % columns > 0 else 0)  # Calculate number of rows needed
 
 # Create columns for displaying plots
@@ -71,7 +71,7 @@ for idx, (site, site_data) in enumerate(filtered_data.items()):
                     mode="lines",
                     name=f"{site} - {col} (within bounds)",
                     line=dict(color='blue'),
-                    showlegend=False  # Hide in-range traces from the legend
+                    showlegend=True  # Show legend for within bounds
                 ))
 
         # Plot out of bounds data (scatter with joined dots)
@@ -83,14 +83,22 @@ for idx, (site, site_data) in enumerate(filtered_data.items()):
                     mode="markers",  # Scatter with dots joined by lines
                     name=f"{site} - {col} (out of bounds)",
                     marker=dict(color='red', size=4),  # Red dots
+                    showlegend=True  # Show legend for out of bounds
                 ))
 
-        # Update layout with titles and axes labels
+        # Update layout with titles, axes labels, and legend placement
         fig.update_layout(
             title=f"Site: {site}",
             xaxis=dict(title="Datetime"),
             yaxis_title="Value",
             template="plotly_white",
+            legend=dict(
+                orientation="h",  # Horizontal legend
+                yanchor="bottom",  # Position the legend below the plot
+                y=-0.2,  # Move legend below the plot
+                xanchor="center",
+                x=0.5
+            )
         )
 
         # Render the plot in the respective column
