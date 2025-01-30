@@ -43,14 +43,13 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
     for column in all_columns:
         variable_type = column.split(" (")[0].strip()
         site_name = column.split(" (")[-1].strip(")") if "(" in column else "Unknown"
-        st.warning(variable_type)
         if site_name not in result:
             continue  # Skip if the site is not in the provided list of site_names
         
         # Find appropriate bounds
-        if "Flow Temperature" in variable_type or "Return Temperature" in variable_type:
+        if "Flow" in variable_type or "Return" in variable_type:
             min_val, max_val = bounds["Flow/Return"]["min"], bounds["Flow/Return"]["max"]
-        elif "Outdoor Temperature" in variable_type:
+        elif "Outdoor" in variable_type:
             min_val, max_val = bounds["Outdoor"]["min"], bounds["Outdoor"]["max"]
         elif "Delta T" in variable_type:
             min_val, max_val = bounds["Delta T"]["min"], bounds["Delta T"]["max"]
@@ -61,9 +60,9 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
         mask = (df_filtered[column] < min_val) | (df_filtered[column] > max_val)
         
         if mask.any():
-            # Create DataFrame for out-of-bounds data
+            # Create DataFrame for out-of-bounds data and add it as a new column
             out_of_bounds_df = df_filtered[mask][[column]]
-            result[site_name]["out_of_bounds"] = out_of_bounds_df
+            result[site_name]["out_of_bounds"] = pd.concat([result[site_name]["out_of_bounds"], out_of_bounds_df], axis=1)
 
             # Replace out-of-bounds data with None in the original DataFrame
             within_bounds_df = df_filtered.copy()
@@ -71,6 +70,6 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
 
             # Subsample in-bounds data every 30 minutes
             within_bounds_df_resampled = within_bounds_df[column].resample(subsample_freq).first()
-            result[site_name]["within_bounds"] = within_bounds_df_resampled.to_frame()
+            result[site_name]["within_bounds"] = pd.concat([result[site_name]["within_bounds"], within_bounds_df_resampled.to_frame()], axis=1)
 
     return result
