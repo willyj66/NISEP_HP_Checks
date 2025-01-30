@@ -330,4 +330,7 @@ def getTimeseries(end_time,start_time,site,variable, auth_url, username, passwor
         if col != 'datetime':  # Exclude datetime column from coercion
             timeseries_df[col] = pd.to_numeric(timeseries_df[col], errors='coerce')
 
+    timeseries_df["datetime"] = pd.to_datetime(timeseries_df["datetime"])  # Ensure datetime column is in datetime format
+    timeseries_df.set_index("datetime", inplace=True)
+    
     return timeseries_df
