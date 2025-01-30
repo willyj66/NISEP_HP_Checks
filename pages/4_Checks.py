@@ -71,8 +71,7 @@ for site, site_data in filtered_data.items():
                 y=site_data["out_of_bounds"][col],
                 mode="markers",  # Scatter with dots joined by lines
                 name=f"{site} - {col} (out of bounds)",
-                line=dict(color='red', width=2),  # Red line connecting dots
-                marker=dict(color='red', size=6),  # Red dots
+                marker=dict(color='red', size=4),  # Red dots
             ))
 
     # Update layout with titles and axes labels
