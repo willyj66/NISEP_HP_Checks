@@ -106,7 +106,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
             fig.update_layout(
                 title=f"Site: {site}",
                 xaxis=dict(title="Datetime"),
-                yaxis_title="Value",
+                yaxis_title="Temperature [°C]",
                 template="plotly_white",
                 legend=dict(
                     orientation="h",  # Horizontal legend
