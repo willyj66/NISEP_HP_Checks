@@ -27,14 +27,17 @@ all_sites, st.session_state.nisep_df = cache_lookup()
 st.sidebar.title("Controls")
 past_days = st.sidebar.number_input("Days Displayed", 1, 30, 7)
 
-# Expander for Bounds Selection
-with st.expander("⚙️ Adjust Bounds", expanded=True):
-    bounds = {
-        "Flow/Return": {"min": st.number_input("Flow/Return Min", value=10), "max": st.number_input("Flow/Return Max", value=70)},
-        "Outdoor": {"min": st.number_input("Outdoor Min", value=-10), "max": st.number_input("Outdoor Max", value=30)},
-        "Indoor": {"min": st.number_input("Indoor Min", value=15), "max": st.number_input("Indoor Max", value=26)},
-        "Delta T": {"min": st.number_input("Delta T Min", value=-10), "max": st.number_input("Delta T Max", value=10)},
-    }
+# Layout for Expander and Data Display
+col1, col2 = st.columns([1, 3])
+
+with col1:
+    with st.expander("⚙️ Adjust Bounds", expanded=True):
+        bounds = {
+            "Flow/Return": {"min": st.number_input("Flow/Return Min", value=10), "max": st.number_input("Flow/Return Max", value=70)},
+            "Outdoor": {"min": st.number_input("Outdoor Min", value=-10), "max": st.number_input("Outdoor Max", value=30)},
+            "Indoor": {"min": st.number_input("Indoor Min", value=15), "max": st.number_input("Indoor Max", value=26)},
+            "Delta T": {"min": st.number_input("Delta T Min", value=-10), "max": st.number_input("Delta T Max", value=10)},
+        }
 
 # Cache Processed Data
 @st.cache_data
@@ -46,10 +49,14 @@ filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds
 st.title("📊 Time Series Data")
 
 # Generate all plots at once
-fig = go.Figure()
+figs = []
 for site, site_df in filtered_data.items():
+    fig = go.Figure()
     for col in site_df.columns:
         fig.add_trace(go.Scatter(x=site_df.index, y=site_df[col], mode="lines", name=f"{site} - {col}"))
+    fig.update_layout(title=f"Site: {site}", xaxis_title="Datetime", yaxis_title="Value", template="plotly_white")
+    figs.append(fig)
 
-fig.update_layout(title="Time Series Data", xaxis_title="Datetime", yaxis_title="Value", template="plotly_white")
-st.plotly_chart(fig, use_container_width=True)
+with col2:
+    for fig in figs:
+        st.plotly_chart(fig, use_container_width=True)
