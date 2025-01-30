@@ -9,8 +9,8 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
     Args:
         df (pd.DataFrame): DataFrame with datetime as index and sites/sensors as columns.
         past_days (int): Number of past days to select.
-        bounds (dict): Dictionary with temperature and Delta T bounds (min/max values for filtering.
-        subsample_freq (str): Frequency for resampling the in-bounds data (default is every 30 minutes).
+        bounds (dict): Dictionary with temperature and Delta T bounds (min/max values for filtering).
+        subsample_freq (str): Frequency for resampling the in-bounds data (default is every 20 minutes).
     
     Returns:
         dict: Dictionary with site names as keys and two DataFrames as values:
@@ -32,7 +32,6 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
     # Filter based on UK time range
     df_filtered = df.loc[start_time:end_time]
     
-    # Identify temperature and Delta T columns
     temperature_columns = df_filtered.filter(like='Temperature').columns
     delta_t_columns = df_filtered.filter(like='Delta T').columns
     all_columns = list(temperature_columns) + list(delta_t_columns)
@@ -43,7 +42,7 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
         variable_type = column.split(" (")[0].strip()
         site_name = column.split(" (")[-1].strip(")") if "(" in column else "Unknown"
         
-        # Determine the bounds for the variable
+        # Find appropriate bounds
         if "Flow" in variable_type or "Return" in variable_type:
             min_val, max_val = bounds["Flow/Return"]["min"], bounds["Flow/Return"]["max"]
         elif "Outdoor" in variable_type:
@@ -66,12 +65,8 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
             within_bounds_df = df_filtered.copy()
             within_bounds_df[column] = within_bounds_df[column].where(~mask)
 
-            # Subsample in-bounds data at the specified frequency (use 'mean' to avoid NaNs)
-            within_bounds_df_resampled = within_bounds_df[column].resample(subsample_freq).mean()
-
-            # You can also use pad() if you prefer to forward-fill missing data during resampling
-            # within_bounds_df_resampled = within_bounds_df[column].resample(subsample_freq).pad()
-
+            # Subsample in-bounds data every 20 minutes
+            within_bounds_df_resampled = within_bounds_df[column].resample(subsample_freq).first()
             result[site_name]["within_bounds"] = within_bounds_df_resampled.to_frame()
 
     return result
