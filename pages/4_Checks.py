@@ -202,8 +202,8 @@ with st.expander("📊 Missing Data Analysis by Site"):
         if idx % 2 == 0:
             with col1:
                 st.subheader(f"📍 Site: {site_id}")
-                st.dataframe(df_display, height=350)  # Fixed height for uniform display
+                st.dataframe(df_display.style.applymap(highlight_high_values), height=350)  # Fixed height for uniform display
         else:
             with col2:
                 st.subheader(f"📍 Site: {site_id}")
-                st.dataframe(df_display, height=350)  # Fixed height for uniform display
+                st.dataframe(df_display.style.applymap(highlight_high_values), height=350)  # Fixed height for uniform display
