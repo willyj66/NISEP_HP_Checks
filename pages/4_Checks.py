@@ -40,7 +40,7 @@ with col1:
         }
 
 # Cache Processed Data
-#@st.cache_data
+@st.cache_data
 def cache_filtered_data(df, past_days, bounds):
     return process_temperature_and_delta_t_data(df, past_days, bounds)
 
@@ -54,23 +54,33 @@ for site, site_data in filtered_data.items():
     # Plot within bounds data (blue line)
     if "within_bounds" in site_data and site_data["within_bounds"].shape[0] > 0:
         for col in site_data["within_bounds"].columns:
-            fig.add_trace(go.Scatter(x=site_data["within_bounds"].index, 
-                                     y=site_data["within_bounds"][col], 
-                                     mode="lines", 
-                                     name=f"{site} - {col} (within bounds)", 
-                                     line=dict(color='blue')))
-    
+            fig.add_trace(go.Scatter(
+                x=site_data["within_bounds"].index,
+                y=site_data["within_bounds"][col],
+                mode="lines",
+                name=f"{site} - {col} (within bounds)",
+                line=dict(color='blue'),
+                showlegend=False  # Hide in-range traces from the legend
+            ))
+
     # Plot out of bounds data (red line)
     if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
         for col in site_data["out_of_bounds"].columns:
-            fig.add_trace(go.Scatter(x=site_data["out_of_bounds"].index, 
-                                     y=site_data["out_of_bounds"][col], 
-                                     mode="lines", 
-                                     name=f"{site} - {col} (out of bounds)", 
-                                     line=dict(color='red', width=2)))
-    
+            fig.add_trace(go.Scatter(
+                x=site_data["out_of_bounds"].index,
+                y=site_data["out_of_bounds"][col],
+                mode="lines",
+                name=f"{site} - {col} (out of bounds)",
+                line=dict(color='red', width=2),
+            ))
+
     # Update layout with titles and axes labels
-    fig.update_layout(title=f"Site: {site}", xaxis_title="Datetime", yaxis_title="Value", template="plotly_white")
+    fig.update_layout(
+        title=f"Site: {site}",
+        xaxis_title="Datetime",
+        yaxis_title="Value",
+        template="plotly_white",
+    )
     figs.append(fig)
 
 with col2:
