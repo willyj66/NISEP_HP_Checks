@@ -51,27 +51,26 @@ figs = []
 for site, site_data in filtered_data.items():
     fig = go.Figure()
 
-    # Plot within bounds data (blue line)
+    # Plot within bounds data (blue dots)
     if "within_bounds" in site_data and site_data["within_bounds"].shape[0] > 0:
         for col in site_data["within_bounds"].columns:
             fig.add_trace(go.Scatter(
                 x=site_data["within_bounds"].index,
                 y=site_data["within_bounds"][col],
-                mode="lines",
+                mode="markers",  # Only dots for in-bounds data
                 name=f"{site} - {col} (within bounds)",
-                line=dict(color='blue'),
+                marker=dict(color='blue', size=6),  # Blue dots
                 showlegend=False  # Hide in-range traces from the legend
             ))
 
-    # Plot out of bounds data (scatter with joined dots)
+    # Plot out of bounds data (red dots)
     if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
         for col in site_data["out_of_bounds"].columns:
             fig.add_trace(go.Scatter(
                 x=site_data["out_of_bounds"].index,
                 y=site_data["out_of_bounds"][col],
-                mode="markers+lines",  # Scatter with dots joined by lines
+                mode="markers",  # Only dots for out-of-bounds data
                 name=f"{site} - {col} (out of bounds)",
-                line=dict(color='red', width=2),  # Red line connecting dots
                 marker=dict(color='red', size=6),  # Red dots
             ))
 
