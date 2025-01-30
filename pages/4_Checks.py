@@ -87,7 +87,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
                         mode="lines",
                         name=f"{col} (within bounds)",
                         line=dict(color='blue'),
-                        showlegend=True  # Show legend for within bounds
+                        showlegend=False  # Show legend for within bounds
                     ))
 
             # Plot out of bounds data (scatter with joined dots)
