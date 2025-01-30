@@ -64,12 +64,8 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
             out_of_bounds_df = df_filtered[mask][[column]]
             result[site_name]["out_of_bounds"] = pd.concat([result[site_name]["out_of_bounds"], out_of_bounds_df], axis=1)
 
-            # Replace out-of-bounds data with None in the original DataFrame
-            within_bounds_df = df_filtered.copy()
-            #within_bounds_df[column] = within_bounds_df[column].where(~mask)
-
             # Subsample in-bounds data every 30 minutes
-            within_bounds_df_resampled = within_bounds_df[column].resample(subsample_freq).first()
+            within_bounds_df_resampled = df_filtered[column].resample(subsample_freq).first()
             result[site_name]["within_bounds"] = pd.concat([result[site_name]["within_bounds"], within_bounds_df_resampled.to_frame()], axis=1)
 
     return result
