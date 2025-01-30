@@ -56,7 +56,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
     }
 
     # Cache Processed Data
-    @st.cache_data
+    #@st.cache_data
     def cache_filtered_data(df, past_days, bounds, site_names):
         return process_temperature_and_delta_t_data(df, past_days, bounds, site_names)
 
