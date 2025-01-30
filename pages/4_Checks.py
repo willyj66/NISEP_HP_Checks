@@ -66,21 +66,21 @@ for site, site_data in filtered_data.items():
     # Plot out of bounds data (red line)
     if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
         for col in site_data["out_of_bounds"].columns:
+            # Set out-of-bounds data to None so that Plotly doesn't connect them
+            out_of_bounds_values = site_data["out_of_bounds"][col].where(
+                site_data["out_of_bounds"][col].notna(), None)
             fig.add_trace(go.Scatter(
                 x=site_data["out_of_bounds"].index,
-                y=site_data["out_of_bounds"][col],
+                y=out_of_bounds_values,
                 mode="lines",
                 name=f"{site} - {col} (out of bounds)",
                 line=dict(color='red', width=2),
             ))
 
-    # Update layout with titles and axes labels, and set x-axis type to "category"
+    # Update layout with titles and axes labels
     fig.update_layout(
         title=f"Site: {site}",
-        xaxis=dict(
-            title="Datetime",
-            type="category",  # Set x-axis to categorical to avoid line joining issue
-        ),
+        xaxis=dict(title="Datetime"),
         yaxis_title="Value",
         template="plotly_white",
     )
