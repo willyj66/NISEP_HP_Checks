@@ -37,8 +37,8 @@ with st.expander("⚙️ Adjust Bounds", expanded=False):
         "Delta T": {"min": st.number_input("Delta T Min", value=-10), "max": st.number_input("Delta T Max", value=10)},
     }
 
-    # Cache Processed Data
-    @st.cache_data
+    # Cache Processed Data - use st.experimental_memo or remove the cache decorator for debugging
+    @st.experimental_memo
     def cache_filtered_data(df, past_days, bounds):
         return process_temperature_and_delta_t_data(df, past_days, bounds)
 
