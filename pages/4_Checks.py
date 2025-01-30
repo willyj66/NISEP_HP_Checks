@@ -140,15 +140,12 @@ def calculate_missing_data_percentage(data):
 # --- Subsample the data for different intervals (Daily, Weekly, Monthly) ---
 uk_tz = pytz.timezone("Europe/London")
 end_time = datetime.now(uk_tz).replace(hour=0, minute=0, second=0, microsecond=0)
-data_daily = st.session_state.nisep_df.loc[(end_time - timedelta(days=1)):end_time]
-data_weekly = st.session_state.nisep_df.loc[(end_time - timedelta(days=7)):end_time]
-data_monthly = st.session_state.nisep_df.loc[(end_time - timedelta(days=30)):end_time]
 
 # Store missing data percentages for each interval
 data_intervals = {
-    "Daily": calculate_missing_data_percentage(data_daily),
-    "Weekly": calculate_missing_data_percentage(data_weekly),
-    "Monthly": calculate_missing_data_percentage(data_monthly),
+    "Daily": st.session_state.nisep_df.loc[(end_time - timedelta(days=1)):end_time],
+    "Weekly": st.session_state.nisep_df.loc[(end_time - timedelta(days=7)):end_time],
+    "Monthly": st.session_state.nisep_df.loc[(end_time - timedelta(days=30)):end_time],
 }
 
 # --- Replace Zeros with NaN (None) ---
