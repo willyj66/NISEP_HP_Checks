@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime, timedelta
 import pytz
+import streamlit as st
 
 def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subsample_freq='30T'):
     """
@@ -42,7 +43,7 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
     for column in all_columns:
         variable_type = column.split(" (")[0].strip()
         site_name = column.split(" (")[-1].strip(")") if "(" in column else "Unknown"
-        
+        st.write(variable_type)
         if site_name not in result:
             continue  # Skip if the site is not in the provided list of site_names
         
