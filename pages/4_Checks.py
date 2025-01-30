@@ -192,11 +192,18 @@ with st.expander("📊 Missing Data Analysis by Site"):
     # Loop through the site_groups and display each site in alternating columns
     site_list = list(site_groups.items())
     for idx, (site_id, df) in enumerate(site_list):
+        # Ensure same vertical space by setting a fixed height for the DataFrame display
+        df = df.round(1)  # Make sure rounding happens before display
+
+        # Format the dataframe to remove unnecessary trailing zeros
+        df_display = df.applymap(lambda x: f"{x:.1f}" if pd.notnull(x) else "")  # Format to 1 decimal place
+
+        # Alternate between columns for each site
         if idx % 2 == 0:
             with col1:
                 st.subheader(f"📍 Site: {site_id}")
-                st.dataframe(df.style.applymap(highlight_high_values))
+                st.dataframe(df_display, height=350)  # Fixed height for uniform display
         else:
             with col2:
                 st.subheader(f"📍 Site: {site_id}")
-                st.dataframe(df.style.applymap(highlight_high_values))
+                st.dataframe(df_display, height=350)  # Fixed height for uniform display
