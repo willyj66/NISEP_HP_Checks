@@ -127,6 +127,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
 
 #################### NOW COMPLETENESS CHECKS ####################
 
+
 def calculate_missing_data_percentage(data):
     """Calculate percentage of missing data for each column in the dataframe."""
     missing_data_percentage = {}
@@ -184,8 +185,18 @@ def highlight_high_values(val):
     return 'background-color: red' if val > 30 else ''
 
 # --- Display Data ---
-st.title("📊 Missing Data Analysis by Site")
+with st.expander("📊 Missing Data Analysis by Site"):
+    # Create two-column layout
+    col1, col2 = st.columns(2)
 
-for site_id, df in site_groups.items():
-    st.subheader(f"📍 Site: {site_id}")
-    st.dataframe(df.style.applymap(highlight_high_values))
+    # Loop through the site_groups and display each site in alternating columns
+    site_list = list(site_groups.items())
+    for idx, (site_id, df) in enumerate(site_list):
+        if idx % 2 == 0:
+            with col1:
+                st.subheader(f"📍 Site: {site_id}")
+                st.dataframe(df.style.applymap(highlight_high_values))
+        else:
+            with col2:
+                st.subheader(f"📍 Site: {site_id}")
+                st.dataframe(df.style.applymap(highlight_high_values))
