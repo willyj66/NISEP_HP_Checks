@@ -29,12 +29,34 @@ past_days = st.sidebar.number_input("Days Displayed", 1, 30, 7)
 
 # Main content in an expander
 with st.expander("⚙️ Adjust Bounds", expanded=False):
-    # Bounds inputs
+    # Create 4 columns for the bounds inputs
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.subheader("Flow/Return")
+        flow_return_min = st.number_input("Min", value=10)
+        flow_return_max = st.number_input("Max", value=70)
+
+    with col2:
+        st.subheader("Outdoor")
+        outdoor_min = st.number_input("Min", value=-10)
+        outdoor_max = st.number_input("Max", value=30)
+
+    with col3:
+        st.subheader("Indoor")
+        indoor_min = st.number_input("Min", value=15)
+        indoor_max = st.number_input("Max", value=26)
+
+    with col4:
+        st.subheader("Delta T")
+        delta_t_min = st.number_input("Min", value=-10)
+        delta_t_max = st.number_input("Max", value=10)
+
     bounds = {
-        "Flow/Return": {"min": st.number_input("Flow/Return Min", value=10), "max": st.number_input("Flow/Return Max", value=70)},
-        "Outdoor": {"min": st.number_input("Outdoor Min", value=-10), "max": st.number_input("Outdoor Max", value=30)},
-        "Indoor": {"min": st.number_input("Indoor Min", value=15), "max": st.number_input("Indoor Max", value=26)},
-        "Delta T": {"min": st.number_input("Delta T Min", value=-10), "max": st.number_input("Delta T Max", value=10)},
+        "Flow/Return": {"min": flow_return_min, "max": flow_return_max},
+        "Outdoor": {"min": outdoor_min, "max": outdoor_max},
+        "Indoor": {"min": indoor_min, "max": indoor_max},
+        "Delta T": {"min": delta_t_min, "max": delta_t_max},
     }
 
     # Cache Processed Data
