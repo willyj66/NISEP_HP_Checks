@@ -34,23 +34,23 @@ with st.expander("⚙️ Adjust Bounds", expanded=False):
 
     with col1:
         st.subheader("Flow/Return")
-        flow_return_min = st.number_input("Min", value=10)
-        flow_return_max = st.number_input("Max", value=70)
+        flow_return_min = st.number_input("Min", value=10, key="flow_return_min")
+        flow_return_max = st.number_input("Max", value=70, key="flow_return_max")
 
     with col2:
         st.subheader("Outdoor")
-        outdoor_min = st.number_input("Min", value=-10)
-        outdoor_max = st.number_input("Max", value=30)
+        outdoor_min = st.number_input("Min", value=-10, key="outdoor_min")
+        outdoor_max = st.number_input("Max", value=30, key="outdoor_max")
 
     with col3:
         st.subheader("Indoor")
-        indoor_min = st.number_input("Min", value=15)
-        indoor_max = st.number_input("Max", value=26)
+        indoor_min = st.number_input("Min", value=15, key="indoor_min")
+        indoor_max = st.number_input("Max", value=26, key="indoor_max")
 
     with col4:
         st.subheader("Delta T")
-        delta_t_min = st.number_input("Min", value=-10)
-        delta_t_max = st.number_input("Max", value=10)
+        delta_t_min = st.number_input("Min", value=-10, key="delta_t_min")
+        delta_t_max = st.number_input("Max", value=10, key="delta_t_max")
 
     bounds = {
         "Flow/Return": {"min": flow_return_min, "max": flow_return_max},
