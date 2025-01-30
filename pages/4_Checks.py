@@ -48,10 +48,28 @@ filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds
 
 # Generate all plots at once
 figs = []
-for site, site_df in filtered_data.items():
+for site, site_data in filtered_data.items():
     fig = go.Figure()
-    for col in site_df.columns:
-        fig.add_trace(go.Scatter(x=site_df.index, y=site_df[col], mode="lines", name=f"{site} - {col}"))
+
+    # Plot within bounds data
+    if "within_bounds" in site_data and site_data["within_bounds"].shape[0] > 0:
+        for col in site_data["within_bounds"].columns:
+            fig.add_trace(go.Scatter(x=site_data["within_bounds"].index, 
+                                     y=site_data["within_bounds"][col], 
+                                     mode="lines", 
+                                     name=f"{site} - {col} (within bounds)", 
+                                     line=dict(color='blue')))
+    
+    # Plot out of bounds data
+    if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
+        for col in site_data["out_of_bounds"].columns:
+            fig.add_trace(go.Scatter(x=site_data["out_of_bounds"].index, 
+                                     y=site_data["out_of_bounds"][col], 
+                                     mode="markers", 
+                                     name=f"{site} - {col} (out of bounds)", 
+                                     marker=dict(color='red', size=8)))
+    
+    # Update layout with titles and axes labels
     fig.update_layout(title=f"Site: {site}", xaxis_title="Datetime", yaxis_title="Value", template="plotly_white")
     figs.append(fig)
 

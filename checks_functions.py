@@ -12,7 +12,9 @@ def process_temperature_and_delta_t_data(df, past_days, bounds):
         bounds (dict): Dictionary with temperature and Delta T bounds (min/max values for filtering).
 
     Returns:
-        dict: Dictionary with site names as keys and filtered DataFrames as values.
+        dict: Dictionary with site names as keys and two DataFrames as values:
+            - 'out_of_bounds': DataFrame containing out-of-bounds values for plotting in red.
+            - 'within_bounds': DataFrame with out-of-bounds values replaced by None.
     """
     # Ensure datetime index is in UK timezone
     uk_tz = pytz.timezone("Europe/London")
@@ -51,8 +53,16 @@ def process_temperature_and_delta_t_data(df, past_days, bounds):
 
         # Filter out-of-range values
         mask = (df_filtered[column] < min_val) | (df_filtered[column] > max_val)
+        
         if mask.any():
-            result.setdefault(site_name, pd.DataFrame())
-            result[site_name][column] = df_filtered[column]
+            # Create DataFrame for out-of-bounds data
+            out_of_bounds_df = df_filtered[mask][[column]]
+            result.setdefault(site_name, {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()})
+            result[site_name]["out_of_bounds"] = out_of_bounds_df
+
+            # Replace out-of-bounds data with None in the original DataFrame
+            within_bounds_df = df_filtered.copy()
+            within_bounds_df[column] = within_bounds_df[column].where(~mask, None)
+            result[site_name]["within_bounds"] = within_bounds_df[[column]]
 
     return result
