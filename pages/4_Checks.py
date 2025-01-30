@@ -82,6 +82,13 @@ for variable in variable_options:
     relevant_columns = [col for col in all_columns if col.startswith(variable)]
     if not relevant_columns:
         continue
+
+    # Check if the relevant columns exist in the DataFrame
+    missing_columns = [col for col in relevant_columns if col not in df_sesh.columns]
+    if missing_columns:
+        st.warning(f"Missing columns for {variable}: {', '.join(missing_columns)}")
+        continue
+
     # Prepare the data
     df = df_sesh[["datetime"] + relevant_columns]
     df['datetime'] = pd.to_datetime(df['datetime'])
@@ -127,35 +134,4 @@ for variable in variable_options:
         out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
         in_range_mask = ~out_of_range_mask
 
-        # Add in-range data (hidden in legend)
-        fig.add_trace(go.Scatter(
-            x=df["datetime"],
-            y=df[column].where(in_range_mask),
-            mode="lines",
-            name=f"{locations[column]}",
-            line=dict(width=2, color="blue"),
-            showlegend=False  # Hide in-range traces from the legend
-        ))
-
-        # Add out-of-range data
-        fig.add_trace(go.Scatter(
-            x=df["datetime"],
-            y=df[column].where(out_of_range_mask),
-            mode="lines",
-            name=f"{locations[column]}",
-            line=dict(width=3, color="red"),
-        ))
-
-    fig.update_layout(
-        title=f"{variable} Data",
-        xaxis_title="Datetime",
-        yaxis_title="Temperature (°C)",
-        legend_title="Out-of-Range Locations",
-        template="plotly_white",
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-# --- Raw Data Preview ---
-with st.expander("🗂️ Show Raw Data"):
-    st.dataframe(df_sesh)
+        # Add in-range data (hidd
