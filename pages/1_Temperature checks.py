@@ -44,121 +44,54 @@ if past_days_new != st.session_state.past_days or 'df' not in st.session_state:
 
 # Retrieve the data from session state
 df_sesh = st.session_state.df
+import pandas as pd
+from datetime import datetime, timedelta
 
-# Dynamically filter temperature and delta T columns
-temperature_columns = df_sesh.filter(like='Temperature').columns
-delta_t_columns = df_sesh.filter(like='Delta T').columns  # Filter Delta T columns
+def process_temperature_and_delta_t_data(df, past_days, bounds):
+    """
+    Processes temperature and Delta T time series data for visualization.
+    
+    Args:
+        df (pd.DataFrame): DataFrame with a datetime column and sites/sensors as columns.
+        past_days (int): Number of past days to select.
+        bounds (dict): Dictionary with temperature and Delta T bounds (min/max values for filtering).
 
-# Combine temperature and delta T columns
-all_columns = list(temperature_columns) + list(delta_t_columns)
+    Returns:
+        dict: Dictionary with site names as keys and filtered DataFrames as values.
+    """
+    df = df.copy()  # Avoid modifying original dataframe
+    df["datetime"] = pd.to_datetime(df["datetime"])  # Ensure datetime column is in datetime format
+    df.set_index("datetime", inplace=True)  # Set datetime as index
 
-# Dynamically update the available variables based on the filtered columns
-variable_options = list(set([
-    col.split(" (")[0].strip() for col in all_columns
-]))
+    end_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    start_time = end_time - timedelta(days=past_days)
 
-# Function to determine min/max values based on variable type
-def get_conditions(variable):
-    if "Flow" in variable or "Return" in variable:
-        return {"min": flow_min, "max": flow_max}
-    elif "Outdoor" in variable:
-        return {"min": outdoor_min, "max": outdoor_max}
-    elif "Delta T" in variable:  # Added condition for Delta T
-        return {"min": delta_t_min, "max": delta_t_max}
-    else:
-        return {"min": indoor_min, "max": indoor_max}
+    df_filtered = df.loc[start_time:end_time]  # Now this should work correctly
+    
+    temperature_columns = df_filtered.filter(like='Temperature').columns
+    delta_t_columns = df_filtered.filter(like='Delta T').columns
+    all_columns = list(temperature_columns) + list(delta_t_columns)
+    
+    result = {}
 
-# Extract location IDs from variable names
-def extract_location(variable_name):
-    if "(" in variable_name and ")" in variable_name:
-        return variable_name.split("(")[-1].strip(")")
-    return "Unknown"
+    for column in all_columns:
+        variable_type = column.split(" (")[0].strip()
+        site_name = column.split(" (")[-1].strip(")") if "(" in column else "Unknown"
+        
+        # Find appropriate bounds
+        if "Flow" in variable_type or "Return" in variable_type:
+            min_val, max_val = bounds["Flow/Return"]["min"], bounds["Flow/Return"]["max"]
+        elif "Outdoor" in variable_type:
+            min_val, max_val = bounds["Outdoor"]["min"], bounds["Outdoor"]["max"]
+        elif "Delta T" in variable_type:
+            min_val, max_val = bounds["Delta T"]["min"], bounds["Delta T"]["max"]
+        else:
+            min_val, max_val = bounds["Indoor"]["min"], bounds["Indoor"]["max"]
 
-# --- Main Content ---
-st.title("📊 NISEP Time Series Data")
+        # Filter out-of-range values
+        mask = (df_filtered[column] < min_val) | (df_filtered[column] > max_val)
+        if mask.any():
+            result.setdefault(site_name, pd.DataFrame())
+            result[site_name][column] = df_filtered[column]
 
-for variable in variable_options:
-    # Filter columns corresponding to the current variable (includes both temperature and delta T)
-    relevant_columns = [col for col in all_columns if col.startswith(variable)]
-    if not relevant_columns:
-        continue
-    # Prepare the data
-    if variable == "Temperature":
-        continue
-
-    df = df_sesh[["datetime"] + relevant_columns]
-    df['datetime'] = pd.to_datetime(df['datetime'])
-
-    # Get conditions for the current variable
-    conditions = get_conditions(variable)
-
-    # Extract location IDs
-    locations = {col: extract_location(col) for col in relevant_columns}
-
-    # Determine locations with out-of-range data, including Delta T
-    out_of_range_locations = [
-        col for col in relevant_columns
-        if ((df[col] < conditions["min"]) | (df[col] > conditions["max"])).any()
-    ]
-
-    if not out_of_range_locations:
-        continue  # Skip if no out-of-range data
-
-    # Horizontal checkboxes for filtering locations, using multiple columns
-    st.write(f"**Select Locations for {variable}**:")
-    selected_locations = []
-
-    # Determine how many columns to create (e.g., 3 columns if there are 6 locations)
-    num_columns = len(out_of_range_locations)
-    columns = st.columns(num_columns)  # Create the columns dynamically
-
-    # Create a checkbox for each location across the columns
-    for idx, col in enumerate(out_of_range_locations):
-        location_id = locations[col]
-        with columns[idx % num_columns]:  # Distribute checkboxes across columns
-            if st.checkbox(location_id, value=True, key=f"checkbox_{variable}_{location_id}"):
-                selected_locations.append(col)
-
-    # Create the plot
-    fig = go.Figure()
-    for column in relevant_columns:
-        # Skip if the location is not selected
-        if column not in selected_locations:
-            continue
-
-        # Identify in-range and out-of-range data
-        out_of_range_mask = (df[column] < conditions["min"]) | (df[column] > conditions["max"])
-        in_range_mask = ~out_of_range_mask
-
-        # Add in-range data (hidden in legend)
-        fig.add_trace(go.Scatter(
-            x=df["datetime"],
-            y=df[column].where(in_range_mask),
-            mode="lines",
-            name=f"{locations[column]}",
-            line=dict(width=2, color="blue"),
-            showlegend=False  # Hide in-range traces from the legend
-        ))
-
-        # Add out-of-range data
-        fig.add_trace(go.Scatter(
-            x=df["datetime"],
-            y=df[column].where(out_of_range_mask),
-            mode="lines",
-            name=f"{locations[column]}",
-            line=dict(width=3, color="red"),
-        ))
-
-    fig.update_layout(
-        title=f"{variable} Data",
-        xaxis_title="Datetime",
-        yaxis_title="Temperature (°C)",
-        legend_title="Out-of-Range Locations",
-        template="plotly_white",
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-# --- Raw Data Preview ---
-with st.expander("🗂️ Show Raw Data"):
-    st.dataframe(df_sesh)
+    return result
