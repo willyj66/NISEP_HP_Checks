@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import pytz
 
-def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='20T'):
+def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='30T'):
     """
     Processes temperature and Delta T time series data for visualization.
     
@@ -15,7 +15,7 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
     Returns:
         dict: Dictionary with site names as keys and two DataFrames as values:
             - 'out_of_bounds': DataFrame containing out-of-bounds values for plotting in red.
-            - 'within_bounds': DataFrame with out-of-bounds values replaced by None, subsampled every 20 minutes.
+            - 'within_bounds': DataFrame with out-of-bounds values replaced by None, subsampled every 30 minutes.
     """
     # Ensure datetime index is in UK timezone
     uk_tz = pytz.timezone("Europe/London")
