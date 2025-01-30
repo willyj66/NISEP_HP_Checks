@@ -23,12 +23,9 @@ def cache_lookup():
 
 all_sites, st.session_state.nisep_df = cache_lookup()
 
-# Sidebar controls
-st.sidebar.title("Controls")
-past_days = st.sidebar.number_input("Days Displayed", 1, 30, 7)
-
 # Main content in an expander
 with st.expander("⚙️ Adjust Bounds", expanded=False):
+    past_days = st.sidebar.number_input("Days Displayed", 1, 30, 7)
     # Create 4 columns for the bounds inputs
     col1, col2, col3, col4 = st.columns(4)
 
