@@ -22,7 +22,6 @@ def cache_lookup():
     return lookup_df.siteNamespace.unique(), getTimeseries(end_time, start_time, None, None, auth_url, username, password)
 
 all_sites, st.session_state.nisep_df = cache_lookup()
-st.dataframe(st.session_state.nisep_df)
 # Main content in an expander
 with st.expander("⚙️ Temperature Checks", expanded=False):
     past_days = st.number_input("Days Displayed", 1, 30, 7)
@@ -75,6 +74,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
     for idx, (site, site_data) in enumerate(filtered_data.items()):
         # Get the column for the current site
         col = site_columns[idx % columns]  # Ensure it wraps around to the next column if needed
+        st.dataframe(site_data)
 
         with col:
             fig = go.Figure()
