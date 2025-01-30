@@ -60,7 +60,7 @@ def process_temperature_and_delta_t_data(df, past_days, bounds):
             result.setdefault(site_name, {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()})
             result[site_name]["out_of_bounds"] = out_of_bounds_df
 
-            # Replace out-of-bounds data with None in the original DataFrame
+            # Replace out-of-bounds data with None in the original DataFrame (leave the gaps)
             within_bounds_df = df_filtered.copy()
             within_bounds_df[column] = within_bounds_df[column].where(~mask, None)
             result[site_name]["within_bounds"] = within_bounds_df[[column]]
