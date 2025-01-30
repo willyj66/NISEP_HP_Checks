@@ -46,8 +46,6 @@ def cache_filtered_data(df, past_days, bounds):
 
 filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds)
 
-st.title("📊 Time Series Data")
-
 # Generate all plots at once
 figs = []
 for site, site_df in filtered_data.items():
