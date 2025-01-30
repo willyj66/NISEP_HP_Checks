@@ -51,7 +51,7 @@ figs = []
 for site, site_data in filtered_data.items():
     fig = go.Figure()
 
-    # Plot within bounds data
+    # Plot within bounds data (blue line)
     if "within_bounds" in site_data and site_data["within_bounds"].shape[0] > 0:
         for col in site_data["within_bounds"].columns:
             fig.add_trace(go.Scatter(x=site_data["within_bounds"].index, 
@@ -60,14 +60,14 @@ for site, site_data in filtered_data.items():
                                      name=f"{site} - {col} (within bounds)", 
                                      line=dict(color='blue')))
     
-    # Plot out of bounds data
+    # Plot out of bounds data (red line)
     if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
         for col in site_data["out_of_bounds"].columns:
             fig.add_trace(go.Scatter(x=site_data["out_of_bounds"].index, 
                                      y=site_data["out_of_bounds"][col], 
-                                     mode="markers", 
+                                     mode="lines", 
                                      name=f"{site} - {col} (out of bounds)", 
-                                     marker=dict(color='red', size=8)))
+                                     line=dict(color='red', width=2)))
     
     # Update layout with titles and axes labels
     fig.update_layout(title=f"Site: {site}", xaxis_title="Datetime", yaxis_title="Value", template="plotly_white")
