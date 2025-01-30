@@ -67,11 +67,9 @@ for site, site_data in filtered_data.items():
     if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
         for col in site_data["out_of_bounds"].columns:
             # Set out-of-bounds data to None so that Plotly doesn't connect them
-            out_of_bounds_values = site_data["out_of_bounds"][col].where(
-                site_data["out_of_bounds"][col].notna(), None)
             fig.add_trace(go.Scatter(
                 x=site_data["out_of_bounds"].index,
-                y=out_of_bounds_values,
+                y=site_data["out_of_bounds"][col].where(site_data["out_of_bounds"][col].notna(), None),
                 mode="lines",
                 name=f"{site} - {col} (out of bounds)",
                 line=dict(color='red', width=2),
