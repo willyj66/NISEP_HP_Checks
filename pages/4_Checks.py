@@ -74,7 +74,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
     for idx, (site, site_data) in enumerate(filtered_data.items()):
         # Get the column for the current site
         col = site_columns[idx % columns]  # Ensure it wraps around to the next column if needed
-        st.dataframe(site_data)
+        st.dataframe(site_data["within_bounds"])
 
         with col:
             fig = go.Figure()
