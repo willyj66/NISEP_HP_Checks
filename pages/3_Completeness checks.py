@@ -61,7 +61,7 @@ for row_name in missing_data_df.index:
 # Convert to DataFrames
 for site_id, site_data in site_groups.items():
     site_groups[site_id] = pd.DataFrame(site_data).T  # Transpose for better readability
-    site_groups[site_id] = site_groups[site_id].loc[~(site_groups[site_id].eq(0).all(axis=1))]
+    site_groups[site_id] = site_groups[site_id].loc[~(site_groups[site_id].eq(0).all(axis=1))].round(1)
 
 # --- Highlight Values > 30 in Red ---
 def highlight_high_values(val):
