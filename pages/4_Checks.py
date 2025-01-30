@@ -74,10 +74,13 @@ for site, site_data in filtered_data.items():
                 line=dict(color='red', width=2),
             ))
 
-    # Update layout with titles and axes labels
+    # Update layout with titles and axes labels, and set x-axis type to "category"
     fig.update_layout(
         title=f"Site: {site}",
-        xaxis_title="Datetime",
+        xaxis=dict(
+            title="Datetime",
+            type="category",  # Set x-axis to categorical to avoid line joining issue
+        ),
         yaxis_title="Value",
         template="plotly_white",
     )
