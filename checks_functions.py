@@ -47,9 +47,9 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
             continue  # Skip if the site is not in the provided list of site_names
         
         # Find appropriate bounds
-        if "Flow" in variable_type or "Return" in variable_type:
+        if "Flow Temperature" in variable_type or "Return Temperature" in variable_type:
             min_val, max_val = bounds["Flow/Return"]["min"], bounds["Flow/Return"]["max"]
-        elif "Outdoor" in variable_type:
+        elif "Outdoor Temperature" in variable_type:
             min_val, max_val = bounds["Outdoor"]["min"], bounds["Outdoor"]["max"]
         elif "Delta T" in variable_type:
             min_val, max_val = bounds["Delta T"]["min"], bounds["Delta T"]["max"]
