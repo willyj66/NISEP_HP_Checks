@@ -15,7 +15,7 @@ def process_temperature_and_delta_t_data(df, past_days, bounds):
     """
     end_time = datetime.now()
     start_time = end_time - timedelta(days=past_days)
-
+    print(df)
     df_filtered = df.loc[start_time:end_time]  # Now this should work correctly
     
     temperature_columns = df_filtered.filter(like='Temperature').columns
