@@ -17,10 +17,8 @@ password = st.secrets.get("Login", {}).get("Password", "")
 @st.cache_data
 def cache_lookup():
     lookup_df = getLookup(auth_url, username, password)
-    # Check the past 30 days
     end_time = datetime(*datetime.now().timetuple()[:3]) 
     start_time = end_time - timedelta(days=30)
-
     return lookup_df.siteNamespace.unique(), getTimeseries(end_time, start_time, None, None, auth_url, username, password)
 
 all_sites, st.session_state.nisep_df = cache_lookup()
@@ -29,23 +27,29 @@ all_sites, st.session_state.nisep_df = cache_lookup()
 st.sidebar.title("Controls")
 past_days = st.sidebar.number_input("Days Displayed", 1, 30, 7)
 
-# Define bounds
-bounds = {
-    "Flow/Return": {"min": 10, "max": 70},
-    "Outdoor": {"min": -10, "max": 30},
-    "Indoor": {"min": 15, "max": 26},
-    "Delta T": {"min": -10, "max": 10},
-}
+# Expander for Bounds Selection
+with st.expander("⚙️ Adjust Bounds", expanded=True):
+    bounds = {
+        "Flow/Return": {"min": st.number_input("Flow/Return Min", value=10), "max": st.number_input("Flow/Return Max", value=70)},
+        "Outdoor": {"min": st.number_input("Outdoor Min", value=-10), "max": st.number_input("Outdoor Max", value=30)},
+        "Indoor": {"min": st.number_input("Indoor Min", value=15), "max": st.number_input("Indoor Max", value=26)},
+        "Delta T": {"min": st.number_input("Delta T Min", value=-10), "max": st.number_input("Delta T Max", value=10)},
+    }
 
-# Process data
-filtered_data = process_temperature_and_delta_t_data(st.session_state.nisep_df, past_days, bounds)
+# Cache Processed Data
+@st.cache_data
+def cache_filtered_data(df, past_days, bounds):
+    return process_temperature_and_delta_t_data(df, past_days, bounds)
+
+filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds)
 
 st.title("📊 Time Series Data")
 
-# Plot data
+# Generate all plots at once
+fig = go.Figure()
 for site, site_df in filtered_data.items():
-    fig = go.Figure()
     for col in site_df.columns:
-        fig.add_trace(go.Scatter(x=site_df.index, y=site_df[col], mode="lines", name=col))
-    fig.update_layout(title=f"Site: {site}", xaxis_title="Datetime", yaxis_title="Value", template="plotly_white")
-    st.plotly_chart(fig, use_container_width=True)
+        fig.add_trace(go.Scatter(x=site_df.index, y=site_df[col], mode="lines", name=f"{site} - {col}"))
+
+fig.update_layout(title="Time Series Data", xaxis_title="Datetime", yaxis_title="Value", template="plotly_white")
+st.plotly_chart(fig, use_container_width=True)
