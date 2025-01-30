@@ -74,7 +74,6 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
     for idx, (site, site_data) in enumerate(filtered_data.items()):
         # Get the column for the current site
         col = site_columns[idx % columns]  # Ensure it wraps around to the next column if needed
-        st.dataframe(site_data["within_bounds"])
 
         with col:
             fig = go.Figure()
@@ -86,7 +85,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
                         x=site_data["within_bounds"].index,
                         y=site_data["within_bounds"][col],
                         mode="lines",
-                        name=f"{site} - {col} (within bounds)",
+                        name=f"{col} (within bounds)",
                         line=dict(color='blue'),
                         showlegend=True  # Show legend for within bounds
                     ))
@@ -98,9 +97,9 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
                         x=site_data["out_of_bounds"].index,
                         y=site_data["out_of_bounds"][col],
                         mode="markers",  # Scatter with dots joined by lines
-                        name=f"{site} - {col} (out of bounds)",
+                        name=f"{col} (out of bounds)",
                         marker=dict(color='red', size=4),  # Red dots
-                        showlegend=True  # Show legend for out of bounds
+                        showlegend=False  # Show legend for out of bounds
                     ))
 
             # Update layout with titles, axes labels, and legend placement
