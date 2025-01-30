@@ -182,10 +182,7 @@ for site_id, site_data in site_groups.items():
 # --- Highlight Values > 30 in Red ---
 def highlight_high_values(val):
     """Highlight values greater than 30 in red."""
-    # Ensure we are working with numeric values only
-    if isinstance(val, (int, float)):
-        return 'background-color: red' if val > 30 else ''
-    return ''
+    return 'background-color: red' if float(val) > 30 else ''
 
 # --- Display Data ---
 with st.expander("📊 Missing Data Analysis by Site"):
