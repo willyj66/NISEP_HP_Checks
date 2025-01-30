@@ -114,8 +114,10 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
                     y=-0.2,  # Move legend below the plot
                     xanchor="center",
                     x=0.5
-                )
+                ),
+                hoverlabel_namelength=-1
             )
+
 
             # Render the plot in the respective column
             st.plotly_chart(fig, use_container_width=True)
