@@ -1,22 +1,33 @@
 import pandas as pd
 from datetime import datetime, timedelta
+import pytz
 
 def process_temperature_and_delta_t_data(df, past_days, bounds):
     """
     Processes temperature and Delta T time series data for visualization.
     
     Args:
-        df (pd.DataFrame): DataFrame with a datetime column and sites/sensors as columns.
+        df (pd.DataFrame): DataFrame with datetime as index and sites/sensors as columns.
         past_days (int): Number of past days to select.
         bounds (dict): Dictionary with temperature and Delta T bounds (min/max values for filtering).
 
     Returns:
         dict: Dictionary with site names as keys and filtered DataFrames as values.
     """
-    end_time = datetime.now()
+    # Ensure datetime index is in UK timezone
+    uk_tz = pytz.timezone("Europe/London")
+    end_time = datetime.now(uk_tz).replace(hour=0, minute=0, second=0, microsecond=0)
     start_time = end_time - timedelta(days=past_days)
-    print(df)
-    df_filtered = df.loc[start_time.tz_localize(None):end_time.tz_localize(None)]  # Now this should work correctly
+
+    # Convert df datetime index to timezone-aware format
+    df = df.copy()
+    df.index = pd.to_datetime(df.index)  # Ensure index is datetime
+    if df.index.tz is None:
+        df.index = df.index.tz_localize("UTC")  # Assume UTC if no timezone
+    df.index = df.index.tz_convert("Europe/London")  # Convert to UK time
+
+    # Filter based on UK time range
+    df_filtered = df.loc[start_time:end_time]
     
     temperature_columns = df_filtered.filter(like='Temperature').columns
     delta_t_columns = df_filtered.filter(like='Delta T').columns
