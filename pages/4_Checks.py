@@ -22,7 +22,7 @@ def cache_lookup():
     return lookup_df.siteNamespace.unique(), getTimeseries(end_time, start_time, None, None, auth_url, username, password)
 
 all_sites, st.session_state.nisep_df = cache_lookup()
-
+st.dataframe(st.session_state.nisep_df)
 # Main content in an expander
 with st.expander("⚙️ Temperature Checks", expanded=False):
     past_days = st.number_input("Days Displayed", 1, 30, 7)
