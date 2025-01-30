@@ -40,7 +40,7 @@ with col1:
         }
 
 # Cache Processed Data
-@st.cache_data
+#@st.cache_data
 def cache_filtered_data(df, past_days, bounds):
     return process_temperature_and_delta_t_data(df, past_days, bounds)
 
