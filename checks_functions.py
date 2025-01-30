@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import pytz
 
-def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='30T'):
+def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subsample_freq='30T'):
     """
     Processes temperature and Delta T time series data for visualization.
     
@@ -10,7 +10,8 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
         df (pd.DataFrame): DataFrame with datetime as index and sites/sensors as columns.
         past_days (int): Number of past days to select.
         bounds (dict): Dictionary with temperature and Delta T bounds (min/max values for filtering).
-        subsample_freq (str): Frequency for resampling the in-bounds data (default is every 20 minutes).
+        site_names (list): List of site names to ensure data is returned for each.
+        subsample_freq (str): Frequency for resampling the in-bounds data (default is every 30 minutes).
     
     Returns:
         dict: Dictionary with site names as keys and two DataFrames as values:
@@ -36,11 +37,14 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
     delta_t_columns = df_filtered.filter(like='Delta T').columns
     all_columns = list(temperature_columns) + list(delta_t_columns)
     
-    result = {}
+    result = {site_name: {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()} for site_name in site_names}
 
     for column in all_columns:
         variable_type = column.split(" (")[0].strip()
         site_name = column.split(" (")[-1].strip(")") if "(" in column else "Unknown"
+        
+        if site_name not in result:
+            continue  # Skip if the site is not in the provided list of site_names
         
         # Find appropriate bounds
         if "Flow" in variable_type or "Return" in variable_type:
@@ -58,14 +62,13 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='
         if mask.any():
             # Create DataFrame for out-of-bounds data
             out_of_bounds_df = df_filtered[mask][[column]]
-            result.setdefault(site_name, {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()})
             result[site_name]["out_of_bounds"] = out_of_bounds_df
 
             # Replace out-of-bounds data with None in the original DataFrame
             within_bounds_df = df_filtered.copy()
             within_bounds_df[column] = within_bounds_df[column].where(~mask)
 
-            # Subsample in-bounds data every 20 minutes
+            # Subsample in-bounds data every 30 minutes
             within_bounds_df_resampled = within_bounds_df[column].resample(subsample_freq).first()
             result[site_name]["within_bounds"] = within_bounds_df_resampled.to_frame()
 
