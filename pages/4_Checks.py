@@ -24,4 +24,4 @@ def cache_lookup():
 
 all_sites, st.session_state.nisep_df = cache_lookup()
 
-st.text(st.session_state.nisep_df)
+st.text(st.session_state.nisep_df.columns)
