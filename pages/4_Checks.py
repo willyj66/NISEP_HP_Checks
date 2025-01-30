@@ -39,10 +39,10 @@ with st.expander("⚙️ Adjust Bounds", expanded=False):
 
     # Cache Processed Data
     @st.cache_data
-    def cache_filtered_data(df, past_days, bounds):
-        return process_temperature_and_delta_t_data(df, past_days, bounds)
+    def cache_filtered_data(df, past_days, bounds, site_names):
+        return process_temperature_and_delta_t_data(df, past_days, bounds, site_names)
 
-    filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds)
+    filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds, all_sites)
 
     # Define grid size based on number of sites
     num_sites = len(filtered_data)
