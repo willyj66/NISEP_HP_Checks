@@ -51,18 +51,16 @@ def process_temperature_and_delta_t_data(df, past_days, bounds):
         else:
             min_val, max_val = bounds["Indoor"]["min"], bounds["Indoor"]["max"]
 
-        # Filter out-of-range values
-        mask = (df_filtered[column] < min_val) | (df_filtered[column] > max_val)
-        
-        if mask.any():
-            # Create DataFrame for out-of-bounds data
-            out_of_bounds_df = df_filtered[mask][[column]]
-            result.setdefault(site_name, {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()})
-            result[site_name]["out_of_bounds"] = out_of_bounds_df
+        # Mask out-of-range values
+        out_of_range_mask = (df_filtered[column] < min_val) | (df_filtered[column] > max_val)
+        in_range_mask = ~out_of_range_mask
 
-            # Replace out-of-bounds data with None in the original DataFrame (leave the gaps)
-            within_bounds_df = df_filtered.copy()
-            within_bounds_df[column] = within_bounds_df[column].where(~mask, None)
-            result[site_name]["within_bounds"] = within_bounds_df[[column]]
+        result.setdefault(site_name, {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()})
+
+        # Store the out-of-bounds data
+        result[site_name]["out_of_bounds"][column] = df_filtered[column].where(out_of_range_mask)
+
+        # Store the in-range data (with None for out-of-bounds)
+        result[site_name]["within_bounds"][column] = df_filtered[column].where(in_range_mask, None)
 
     return result
