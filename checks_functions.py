@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 import pytz
 
-def process_temperature_and_delta_t_data(df, past_days, bounds):
+def process_temperature_and_delta_t_data(df, past_days, bounds, subsample_freq='20T'):
     """
     Processes temperature and Delta T time series data for visualization.
     
@@ -10,11 +10,12 @@ def process_temperature_and_delta_t_data(df, past_days, bounds):
         df (pd.DataFrame): DataFrame with datetime as index and sites/sensors as columns.
         past_days (int): Number of past days to select.
         bounds (dict): Dictionary with temperature and Delta T bounds (min/max values for filtering).
-
+        subsample_freq (str): Frequency for resampling the in-bounds data (default is every 20 minutes).
+    
     Returns:
         dict: Dictionary with site names as keys and two DataFrames as values:
             - 'out_of_bounds': DataFrame containing out-of-bounds values for plotting in red.
-            - 'within_bounds': DataFrame with out-of-bounds values replaced by None.
+            - 'within_bounds': DataFrame with out-of-bounds values replaced by None, subsampled every 20 minutes.
     """
     # Ensure datetime index is in UK timezone
     uk_tz = pytz.timezone("Europe/London")
@@ -51,16 +52,21 @@ def process_temperature_and_delta_t_data(df, past_days, bounds):
         else:
             min_val, max_val = bounds["Indoor"]["min"], bounds["Indoor"]["max"]
 
-        # Mask out-of-range values
-        out_of_range_mask = (df_filtered[column] < min_val) | (df_filtered[column] > max_val)
-        in_range_mask = ~out_of_range_mask
+        # Filter out-of-range values
+        mask = (df_filtered[column] < min_val) | (df_filtered[column] > max_val)
+        
+        if mask.any():
+            # Create DataFrame for out-of-bounds data
+            out_of_bounds_df = df_filtered[mask][[column]]
+            result.setdefault(site_name, {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()})
+            result[site_name]["out_of_bounds"] = out_of_bounds_df
 
-        result.setdefault(site_name, {"out_of_bounds": pd.DataFrame(), "within_bounds": pd.DataFrame()})
+            # Replace out-of-bounds data with None in the original DataFrame
+            within_bounds_df = df_filtered.copy()
+            within_bounds_df[column] = within_bounds_df[column].where(~mask)
 
-        # Store the out-of-bounds data
-        result[site_name]["out_of_bounds"][column] = df_filtered[column].where(out_of_range_mask)
-
-        # Store the in-range data (with None for out-of-bounds)
-        result[site_name]["within_bounds"][column] = df_filtered[column].where(in_range_mask, None)
+            # Subsample in-bounds data every 20 minutes
+            within_bounds_df_resampled = within_bounds_df[column].resample(subsample_freq).first()
+            result[site_name]["within_bounds"] = within_bounds_df_resampled.to_frame()
 
     return result
