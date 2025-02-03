@@ -247,7 +247,7 @@ def get_sliced_data(df, interval):
 def highlight_cop_values(val):
     try:
         val = float(val)
-        if float(val) < 1 or float(val) > 3:
+        if float(val) < 1 or float(val) > 6:
             return 'background-color: red'
     except ValueError:
         return 'background-color: red' if val is None else ''
