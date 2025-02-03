@@ -53,8 +53,8 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
 
     with col4:
         st.subheader("Delta T")
-        delta_t_min = st.number_input("Min", value=-10)
-        delta_t_max = st.number_input("Max", value=10)
+        delta_t_min = st.number_input("Min", value=-10,key='delta_t_min')
+        delta_t_max = st.number_input("Max", value=10,key='delta_t_max')
 
     bounds = {
         "Flow/Return": {"min": flow_return_min, "max": flow_return_max},
