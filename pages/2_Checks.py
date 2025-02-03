@@ -175,7 +175,7 @@ with st.expander("⚡ COP Analysis", expanded=False):
             elif title == "COP":
                 # Format numbers and handle None/NaN
                 styled_df = df.applymap(lambda x: f"{x:.2f}" if pd.notna(x) else '').style.applymap(
-                    lambda x: 'background-color: red' if (pd.isna(x) or (x != '' and (float(x) < 1 or float(x) > 6))) else '', subset=pd.IndexSlice[:, :])
+                    lambda x: 'background-color: red' if (pd.isna(x) or x=='' or (x != '' and (float(x) < 1 or float(x) > 6))) else '', subset=pd.IndexSlice[:, :])
     
             # Display the styled dataframe
             st.dataframe(styled_df, use_container_width=True)
