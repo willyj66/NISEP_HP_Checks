@@ -279,13 +279,13 @@ with st.expander("⚡ COP Analysis", expanded=False):
     
     with col1:
         st.subheader("Heat Diff")
-        st.dataframe(heat_diff_data.round(2))
+        st.dataframe(heat_diff_data.round(2),use_container_width=True)
     
     with col2:
         st.subheader("Consumption Diff")
-        st.dataframe(consumption_diff_data.round(2))
+        st.dataframe(consumption_diff_data.round(2),use_container_width=True)
     
     with col3:
         st.subheader("COP")
-        st.dataframe(cop_data.applymap(lambda x: f"{x:.2f}" if pd.notnull(x) else "").style.applymap(highlight_cop_values))
+        st.dataframe(cop_data.applymap(lambda x: f"{x:.2f}" if pd.notnull(x) else "").style.applymap(highlight_cop_values),use_container_width=True)
     
