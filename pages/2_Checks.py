@@ -23,7 +23,7 @@ username = st.secrets.get("Login", {}).get("Username", "")
 password = st.secrets.get("Login", {}).get("Password", "")
 
 # Cache Lookup Data
-@st.cache_resource
+@st.cache_resource(ttl="1d")
 def cache_nisep():
     lookup_df = getLookup(auth_url, username, password)
     end_time = datetime(*datetime.now().timetuple()[:3]) 
