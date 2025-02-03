@@ -5,8 +5,12 @@ import plotly.graph_objects as go
 import pandas as pd
 
 # Page layout configuration
-st.set_page_config(layout="wide")
-
+st.set_page_config(
+    page_title="NISEP Heat Pumpz",
+    page_icon="favicon.png",
+    layout="wide"
+)
+st.logo('logo.svg',size='large')
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
