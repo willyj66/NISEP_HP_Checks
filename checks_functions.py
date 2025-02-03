@@ -87,7 +87,7 @@ def calculate_cop(data):
                 consumption_series = data[consumption_column].dropna()
                 
                 if len(heat_series) > 1 and len(consumption_series) > 1:
-                    st.text(heat_series)
+                    #st.text(heat_series)
                     heat_diff.loc[site_id, 'Heat Diff'] = heat_series.iloc[-1] - heat_series.iloc[0]
                     consumption_diff.loc[site_id, 'Consumption Diff'] = consumption_series.iloc[-1] - consumption_series.iloc[0]
                     
