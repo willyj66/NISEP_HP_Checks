@@ -219,7 +219,6 @@ with st.expander("📊 Missing Data Analysis by Site"):
                 st.subheader(f"📍 Site: {site_id}")
                 st.dataframe(df_display.style.applymap(highlight_high_values), height=350)  # Fixed height for uniform display
 
-
 # --- Function to slice data efficiently ---
 def get_sliced_data(df, interval):
     uk_tz = pytz.timezone("Europe/London")
@@ -232,6 +231,16 @@ def get_sliced_data(df, interval):
     }
     
     return df.loc[start_times[interval]:end_time]
+
+# --- Function to highlight values outside 1-3 range ---
+def highlight_cop_values(val):
+    try:
+        val = float(val)
+        if float(val) < 1 or float(val) > 3:
+            return 'background-color: red'
+    except ValueError:
+        return 'background-color: red' if val is None else ''
+    return ''
 
 # --- COP Analysis Expander ---
 with st.expander("⚡ COP Analysis", expanded=False):
@@ -270,12 +279,13 @@ with st.expander("⚡ COP Analysis", expanded=False):
     
     with col1:
         st.subheader("Heat Diff")
-        st.dataframe(heat_diff_data)
+        st.dataframe(heat_diff_data.round(2))
     
     with col2:
         st.subheader("Consumption Diff")
-        st.dataframe(consumption_diff_data)
+        st.dataframe(consumption_diff_data.round(2))
     
     with col3:
         st.subheader("COP")
-        st.dataframe(cop_data)
+        st.dataframe(cop_data.round(2).style.applymap(highlight_cop_values))
+    
