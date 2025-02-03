@@ -163,16 +163,19 @@ with st.expander("⚡ COP Analysis", expanded=False):
         with col:
             st.subheader(title)
     
-            # Apply styles based on the DataFrame type
+            # Apply styles and format the values based on the DataFrame type
             if title == "Heat Diff":
-                styled_df = df.applymap(lambda x: f"{x:.0f}" if x is not None and pd.notna(x) else '').style.applymap(
-                    lambda x: 'background-color: red' if (x is None or pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
+                # Format numbers and handle None/NaN
+                styled_df = df.applymap(lambda x: f"{x:.0f}" if pd.notna(x) else '').style.applymap(
+                    lambda x: 'background-color: red' if (pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
             elif title == "Consumption Diff":
-                styled_df = df.applymap(lambda x: f"{x:.0f}" if x is not None and pd.notna(x) else '').style.applymap(
-                    lambda x: 'background-color: yellow' if (x is None or pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
+                # Format numbers and handle None/NaN
+                styled_df = df.applymap(lambda x: f"{x:.0f}" if pd.notna(x) else '').style.applymap(
+                    lambda x: 'background-color: yellow' if (pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
             elif title == "COP":
-                styled_df = df.applymap(lambda x: f"{x:.2f}" if x is not None and pd.notna(x) else '').style.applymap(
-                    lambda x: 'background-color: red' if (x is None or pd.isna(x) or float(x) < 1 or float(x) > 6) else '', subset=pd.IndexSlice[:, :])
+                # Format numbers and handle None/NaN
+                styled_df = df.applymap(lambda x: f"{x:.2f}" if pd.notna(x) else '').style.applymap(
+                    lambda x: 'background-color: red' if (pd.isna(x) or float(x) < 1 or float(x) > 6) else '', subset=pd.IndexSlice[:, :])
     
             # Display the styled dataframe
             st.dataframe(styled_df, use_container_width=True)
