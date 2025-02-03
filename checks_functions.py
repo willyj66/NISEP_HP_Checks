@@ -70,3 +70,24 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
             result[site_name]["within_bounds"] = pd.concat([result[site_name]["within_bounds"], within_bounds_df_resampled.to_frame()], axis=1)
 
     return result
+
+def calculate_cop(data):
+    df_numeric = data.drop(columns=['datetime'])
+    cop = pd.DataFrame()
+    heat_diff = pd.DataFrame()
+    consumption_diff = pd.DataFrame()
+
+    for column in df_numeric.columns:
+        if 'Output Heat Energy' in column:
+            consumption_column = column.replace('Output Heat Energy', 'ASHP Consumption Energy')
+            if consumption_column in df_numeric.columns:
+                site_id = column.split('(')[-1].strip(')')  # Extract site ID
+
+                # Compute differences
+                heat_diff.loc[site_id, 'Heat Diff'] = df_numeric[column].iloc[-1] - df_numeric[column].iloc[0]
+                consumption_diff.loc[site_id, 'Consumption Diff'] = df_numeric[consumption_column].iloc[-1] - df_numeric[consumption_column].iloc[0]
+
+                # Calculate COP
+                cop.loc[site_id, 'COP'] = heat_diff.loc[site_id, 'Heat Diff'] / consumption_diff.loc[site_id, 'Consumption Diff']
+
+    return cop, heat_diff, consumption_diff

@@ -15,6 +15,8 @@ st.set_page_config(
 )
 st.logo('logo.svg',size='large')
 
+#################### LOGIN #######################
+
 # --- Auth & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
@@ -29,6 +31,10 @@ def cache_lookup():
     return lookup_df.siteNamespace.unique(), getTimeseries(end_time, start_time, None, None, auth_url, username, password)
 
 all_sites, st.session_state.nisep_df = cache_lookup()
+
+
+#################### TEMPERATURE CHECKS #######################
+
 # Main content in an expander
 with st.expander("⚙️ Temperature Checks", expanded=False):
     past_days = st.number_input("Days Displayed", 1, 30, 2)
@@ -130,7 +136,7 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
             st.plotly_chart(fig, use_container_width=True)
 
 
-#################### NOW COMPLETENESS CHECKS ####################
+#################### COMPLETENESS CHECKS #######################
 
 
 def calculate_missing_data_percentage(data):
@@ -212,3 +218,68 @@ with st.expander("📊 Missing Data Analysis by Site"):
             with col2:
                 st.subheader(f"📍 Site: {site_id}")
                 st.dataframe(df_display.style.applymap(highlight_high_values), height=350)  # Fixed height for uniform display
+
+#################### COP CHECKS #######################
+
+# Function to calculate COP and related values
+from checks_functions import calculate_cop
+
+def get_sliced_data(df, interval):
+    """Slice data from the cached DataFrame based on interval."""
+    uk_tz = pytz.timezone("Europe/London")
+    end_time = datetime.now(uk_tz).replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    start_times = {
+        "Daily": end_time - timedelta(days=1),
+        "Weekly": end_time - timedelta(days=7),
+        "Monthly": end_time - timedelta(days=30),
+    }
+    return df.loc[start_times[interval]:end_time]
+
+# Sidebar for user selection
+st.sidebar.title("Controls")
+averaging = st.sidebar.selectbox("Averaging Type", ['max', 'min', 'average'])
+
+# Process COP data using the cached dataset
+cop_data = pd.DataFrame()
+heat_diff_data = pd.DataFrame()
+consumption_diff_data = pd.DataFrame()
+
+data_intervals = {interval: get_sliced_data(st.session_state.nisep_df, interval) for interval in ["Daily", "Weekly", "Monthly"]}
+
+for interval, data in data_intervals.items():
+    interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(data)
+    interval_cop = interval_cop.rename(columns={"COP": interval})
+    interval_heat_diff = interval_heat_diff.rename(columns={"Heat Diff": interval})
+    interval_consumption_diff = interval_consumption_diff.rename(columns={"Consumption Diff": interval})
+    
+    if cop_data.empty:
+        cop_data = interval_cop
+        heat_diff_data = interval_heat_diff
+        consumption_diff_data = interval_consumption_diff
+    else:
+        cop_data = cop_data.merge(interval_cop, left_index=True, right_index=True, how="outer")
+        heat_diff_data = heat_diff_data.merge(interval_heat_diff, left_index=True, right_index=True, how="outer")
+        consumption_diff_data = consumption_diff_data.merge(interval_consumption_diff, left_index=True, right_index=True, how="outer")
+
+# Display COP Analysis in an expander
+with st.expander("⚡ COP Analysis", expanded=False):
+    st.write("Analysis of Coefficient of Performance (COP) for heat pumps across different time intervals.")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.subheader("Heat Diff")
+        st.dataframe(heat_diff_data)
+    
+    with col2:
+        st.subheader("Consumption Diff")
+        st.dataframe(consumption_diff_data)
+    
+    with col3:
+        st.subheader("COP")
+        st.dataframe(cop_data)
+    
+    with st.expander("🗂️ Show Raw Data"):
+        for interval, data in data_intervals.items():
+            st.write(f"**{interval} Data**")
+            st.dataframe(data)
