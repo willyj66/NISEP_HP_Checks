@@ -41,16 +41,15 @@ if 'df' not in st.session_state or st.session_state.past_days != past_days:
     st.session_state.past_days = past_days
 
 # Retrieve data from session state
-df = st.session_state.df
 st.dataframe(st.session_state.df)
 # Temporary variables for UI selections
 current_display_site = st.sidebar.multiselect("Select Site", all_sites, None)
 
 # Filter available columns based on the selected sites
 if current_display_site:
-    site_columns = [col for col in df.columns if any(f"({site})" in col for site in current_display_site)]
+    site_columns = [col for col in st.session_state.df.columns if any(f"({site})" in col for site in current_display_site)]
 else:
-    site_columns = df.columns[1:]  # Exclude 'datetime'
+    site_columns = st.session_state.df.columns[1:]  # Exclude 'datetime'
 
 # Dynamically update the available variables based on the filtered columns
 variable_options = list(set([col.split(" (")[0].strip() for col in site_columns]))
@@ -69,7 +68,7 @@ if update_button:  # Only update the graph when the button is pressed
             col for col in site_columns if col.split(" (")[0].strip() in current_variable_1 + current_variable_2
         ]
 
-        if df.empty:
+        if st.session_state.df.empty:
             st.warning("No data available for the selected parameters.")
         else:
             # --- Main Content ---
@@ -83,13 +82,13 @@ if update_button:  # Only update the graph when the button is pressed
                 for var in current_variable_1:
                     cols = [col for col in site_columns if col.startswith(var)]
                     for col in cols:
-                        fig.add_trace(go.Scatter(x=df.index, y=df[col], mode='lines', name=f"{col} (Y1)", yaxis="y1"))
+                        fig.add_trace(go.Scatter(x=st.session_state.df.index, y=st.session_state.df[col], mode='lines', name=f"{col} (Y1)", yaxis="y1"))
 
                 # Add traces for Variable 2 (Y2)
                 for var in current_variable_2:
                     cols = [col for col in site_columns if col.startswith(var)]
                     for col in cols:
-                        fig.add_trace(go.Scatter(x=df.index, y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
+                        fig.add_trace(go.Scatter(x=st.session_state.df.index, y=st.session_state.df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
 
                 # Configure axes with dynamic labels and place legend to the right of the plot
                 fig.update_layout(
@@ -115,7 +114,7 @@ if update_button:  # Only update the graph when the button is pressed
 
             # --- Raw Data Preview ---
             with st.expander("🗂️ Show Raw Data"):
-                st.dataframe(df[filtered_columns])  # Show filtered data for the selected columns
+                st.dataframe(st.session_state.df[filtered_columns])  # Show filtered data for the selected columns
 else:
     st.info("BALLOONS!")
     st.balloons()
