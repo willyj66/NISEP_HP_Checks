@@ -17,10 +17,10 @@ username = st.secrets.get("Login", {}).get("Username", "")
 password = st.secrets.get("Login", {}).get("Password", "")
 
 # Cache Lookup Data
-@st.cache_data
-def cache_lookup():
-    lookup_df = getLookup(auth_url, username, password)
-    return lookup_df.siteNamespace.unique()
+#@st.cache_data
+#def cache_lookup():
+#    lookup_df = getLookup(auth_url, username, password)
+#    return lookup_df.siteNamespace.unique()
 
 all_sites = getLookup(auth_url, username, password).siteNamespace.unique()#cache_lookup()
 
