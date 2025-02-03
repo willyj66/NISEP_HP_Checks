@@ -287,5 +287,5 @@ with st.expander("⚡ COP Analysis", expanded=False):
     
     with col3:
         st.subheader("COP")
-        st.dataframe(cop_data.round(2).style.applymap(highlight_cop_values))
+        st.dataframe(cop_data.applymap(lambda x: f"{x:.2f}" if pd.notnull(x) else "").style.applymap(highlight_cop_values))
     
