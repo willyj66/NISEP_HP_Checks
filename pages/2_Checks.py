@@ -141,6 +141,7 @@ with st.expander("⚡ COP Analysis", expanded=False):
     for interval in intervals.keys():
         interval_df = get_sliced_data(st.session_state.nisep_df, interval)
         interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(interval_df)
+        st.dataframe(interval_cop)
         for df, name in [(interval_cop, "COP"), (interval_heat_diff, "Heat Diff"), (interval_consumption_diff, "Consumption Diff")]:
             df.rename(columns={df.columns[0]: interval}, inplace=True)
             cop_data, heat_diff_data, consumption_diff_data = [df if df.empty else df.merge(df, left_index=True, right_index=True, how="outer") for df in [cop_data, heat_diff_data, consumption_diff_data]]
