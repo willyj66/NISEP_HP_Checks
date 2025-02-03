@@ -83,13 +83,13 @@ if update_button:  # Only update the graph when the button is pressed
                 for var in current_variable_1:
                     cols = [col for col in site_columns if col.startswith(var)]
                     for col in cols:
-                        fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y1)", yaxis="y1"))
+                        fig.add_trace(go.Scatter(x=df.index, y=df[col], mode='lines', name=f"{col} (Y1)", yaxis="y1"))
 
                 # Add traces for Variable 2 (Y2)
                 for var in current_variable_2:
                     cols = [col for col in site_columns if col.startswith(var)]
                     for col in cols:
-                        fig.add_trace(go.Scatter(x=df['datetime'], y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
+                        fig.add_trace(go.Scatter(x=df.index, y=df[col], mode='lines', name=f"{col} (Y2)", yaxis="y2"))
 
                 # Configure axes with dynamic labels and place legend to the right of the plot
                 fig.update_layout(
