@@ -151,7 +151,7 @@ def calculate_missing_data_percentage(data):
 # --- Replace Zeros with NaN (None) ---
 # --- Subsample the data for different intervals (Daily, Weekly, Monthly) ---
 uk_tz = pytz.timezone("Europe/London")
-end_time = datetime.now(uk_tz).replace(hour=0, minute=0, second=0, microsecond=0)
+end_time = datetime.now(uk_tz)
 
 # Store missing data percentages for each interval
 data_intervals = {
