@@ -162,14 +162,14 @@ with st.expander("⚡ COP Analysis", expanded=False):
     for col, title, df in zip(st.columns(3), ["Heat Diff", "Consumption Diff", "COP"], [heat_diff_data, consumption_diff_data, cop_data]):
         with col:
             st.subheader(title)
-    
+
             # Apply styles based on the DataFrame type
             if title == "Heat Diff":
-                styled_df = df.style.applymap(lambda x: 'background-color: red' if (x is None or pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
+                styled_df = df.applymap(lambda x: f"{x:.0f}").style.applymap(lambda x: 'background-color: red' if (x is None or pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
             elif title == "Consumption Diff":
-                styled_df = df.style.applymap(lambda x: 'background-color: yellow' if (x is None or pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
+                styled_df = df.applymap(lambda x: f"{x:.0f}").style.applymap(lambda x: 'background-color: yellow' if (x is None or pd.isna(x) or float(x) < 0) else '', subset=pd.IndexSlice[:, :])
             elif title == "COP":
-                styled_df = df.style.applymap(lambda x: 'background-color: red' if (x is None or pd.isna(x) or float(x) < 1 or float(x) > 6) else '', subset=pd.IndexSlice[:, :])
-    
+                styled_df = df.applymap(lambda x: f"{x:.2f}").style.applymap(lambda x: 'background-color: red' if (x is None or pd.isna(x) or float(x) < 1 or float(x) > 6) else '', subset=pd.IndexSlice[:, :])
+
             # Display the styled dataframe
             st.dataframe(styled_df, use_container_width=True)
