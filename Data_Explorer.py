@@ -22,7 +22,7 @@ def cache_lookup():
     lookup_df = getLookup(auth_url, username, password)
     return lookup_df.siteNamespace.unique()
 
-all_sites = cache_lookup()
+all_sites = getLookup(auth_url, username, password).siteNamespace.unique()#cache_lookup()
 
 # --- Sidebar for Control ---
 st.sidebar.title("Controls")
