@@ -13,53 +13,48 @@ st.set_page_config(
     page_icon="favicon.png",
     layout="wide"
 )
-st.logo('logo.svg',size='large')
+st.logo('logo.svg', size='large')
 
-#################### LOGIN #######################
-
-# --- Auth & Data Fetching ---
+# --- Authentication & Data Fetching ---
 auth_url = st.secrets.get("Login", {}).get("URL", "https://users.carnego.net")
 username = st.secrets.get("Login", {}).get("Username", "")
 password = st.secrets.get("Login", {}).get("Password", "")
 
-# Cache Lookup Data
 @st.cache_resource(ttl="1d")
 def cache_nisep():
+    """Fetch lookup data and timeseries data, caching the results for one day."""
     lookup_df = getLookup(auth_url, username, password)
-    end_time = datetime(*datetime.now().timetuple()[:3]) 
+    end_time = datetime(*datetime.now().timetuple()[:3])
     start_time = end_time - timedelta(days=30)
-    return lookup_df.siteNamespace.unique(), getTimeseries(end_time, start_time, None, None, auth_url, username, password)
+    timeseries_df = getTimeseries(end_time, start_time, None, None, auth_url, username, password)
+    return lookup_df.siteNamespace.unique(), timeseries_df
 
 all_sites, st.session_state.nisep_df = cache_nisep()
 
-
-#################### TEMPERATURE CHECKS #######################
-
-# Main content in an expander
+# --- Temperature Checks ---
 with st.expander("⚙️ Temperature Checks", expanded=False):
     past_days = st.number_input("Days Displayed", 1, 30, 2)
-    # Create 4 columns for the bounds inputs
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         st.subheader("Flow/Return")
-        flow_return_min = st.number_input("Min", value=10, key="flow_return_min")
-        flow_return_max = st.number_input("Max", value=70, key="flow_return_max")
+        flow_return_min = st.number_input("Min", value=10)
+        flow_return_max = st.number_input("Max", value=70)
 
     with col2:
         st.subheader("Outdoor")
-        outdoor_min = st.number_input("Min", value=-10, key="outdoor_min")
-        outdoor_max = st.number_input("Max", value=30, key="outdoor_max")
+        outdoor_min = st.number_input("Min", value=-10)
+        outdoor_max = st.number_input("Max", value=30)
 
     with col3:
         st.subheader("Indoor")
-        indoor_min = st.number_input("Min", value=15, key="indoor_min")
-        indoor_max = st.number_input("Max", value=26, key="indoor_max")
+        indoor_min = st.number_input("Min", value=15)
+        indoor_max = st.number_input("Max", value=26)
 
     with col4:
         st.subheader("Delta T")
-        delta_t_min = st.number_input("Min", value=-10, key="delta_t_min")
-        delta_t_max = st.number_input("Max", value=10, key="delta_t_max")
+        delta_t_min = st.number_input("Min", value=-10)
+        delta_t_max = st.number_input("Max", value=10)
 
     bounds = {
         "Flow/Return": {"min": flow_return_min, "max": flow_return_max},
@@ -68,232 +63,89 @@ with st.expander("⚙️ Temperature Checks", expanded=False):
         "Delta T": {"min": delta_t_min, "max": delta_t_max},
     }
 
-    # Cache Processed Data
-    #@st.cache_data
-    def cache_filtered_data(df, past_days, bounds, site_names):
-        return process_temperature_and_delta_t_data(df, past_days, bounds, site_names)
+    filtered_data = process_temperature_and_delta_t_data(st.session_state.nisep_df, past_days, bounds, all_sites)
 
-    filtered_data = cache_filtered_data(st.session_state.nisep_df, past_days, bounds, all_sites)
-
-    # Define grid size based on number of sites
-    num_sites = len(filtered_data)
-    columns = 2  # 2 columns for the grid layout
-    rows = (num_sites // columns) + (1 if num_sites % columns > 0 else 0)  # Calculate number of rows needed
-
-    # Create columns for displaying plots
-    site_columns = st.columns(columns)
-
-    # Generate all plots at once
+    site_columns = st.columns(2)
     for idx, (site, site_data) in enumerate(filtered_data.items()):
-        # Get the column for the current site
-        col = site_columns[idx % columns]  # Ensure it wraps around to the next column if needed
-
+        col = site_columns[idx % 2]
         with col:
             fig = go.Figure()
-
-            # Plot within bounds data (blue line)
-            if "within_bounds" in site_data and site_data["within_bounds"].shape[0] > 0:
-                for col in site_data["within_bounds"].columns:
-                    fig.add_trace(go.Scatter(
-                        x=site_data["within_bounds"].index,
-                        y=site_data["within_bounds"][col],
-                        mode="lines",
-                        name=f"{col} (within bounds)",
-                        line=dict(color='blue'),
-                        showlegend=False  # Show legend for within bounds
-                    ))
-
-            # Plot out of bounds data (scatter with joined dots)
-            if "out_of_bounds" in site_data and site_data["out_of_bounds"].shape[0] > 0:
-                for col in site_data["out_of_bounds"].columns:
-                    fig.add_trace(go.Scatter(
-                        x=site_data["out_of_bounds"].index,
-                        y=site_data["out_of_bounds"][col],
-                        mode="markers",  # Scatter with dots joined by lines
-                        name=f"{col} (out of bounds)",
-                        marker=dict(color='red', size=4),  # Red dots
-                        showlegend=False  # Show legend for out of bounds
-                    ))
-
-            # Update layout with titles, axes labels, and legend placement
+            for key, color in [("within_bounds", 'blue'), ("out_of_bounds", 'red')]:
+                if key in site_data and not site_data[key].empty:
+                    for column in site_data[key].columns:
+                        fig.add_trace(go.Scatter(
+                            x=site_data[key].index, y=site_data[key][column],
+                            mode="lines" if key == "within_bounds" else "markers",
+                            name=f"{column} ({key.replace('_', ' ')})",
+                            line=dict(color=color) if key == "within_bounds" else None,
+                            marker=dict(color=color, size=4) if key == "out_of_bounds" else None,
+                            showlegend=False
+                        ))
             fig.update_layout(
                 title=f"Site: {site}",
                 xaxis=dict(title="Datetime"),
                 yaxis_title="Temperature [°C]",
                 template="plotly_white",
-                legend=dict(
-                    orientation="h",  # Horizontal legend
-                    yanchor="bottom",  # Position the legend below the plot
-                    y=-0.2,  # Move legend below the plot
-                    xanchor="center",
-                    x=0.5
-                ),
-                hoverlabel_namelength=-1
+                legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
             )
-
-
-            # Render the plot in the respective column
             st.plotly_chart(fig, use_container_width=True)
 
-
-#################### COMPLETENESS CHECKS #######################
-
-
+# --- Missing Data Analysis ---
 def calculate_missing_data_percentage(data):
-    """Calculate percentage of missing data for each column in the dataframe."""
-    missing_data_percentage = {}
-    for column in data.columns:
-        missing_count = data[column].isna().sum()
-        total_count = len(data[column])
-        missing_data_percentage[column] = (missing_count / total_count) * 100
-    return missing_data_percentage
+    """Calculate percentage of missing data for each column."""
+    return (data.isna().sum() / len(data)) * 100
 
-# --- Replace Zeros with NaN (None) ---
-# --- Subsample the data for different intervals (Daily, Weekly, Monthly) ---
 uk_tz = pytz.timezone("Europe/London")
 end_time = datetime.now(uk_tz)
 
-# Store missing data percentages for each interval
-data_intervals = {
-    "Daily": st.session_state.nisep_df.loc[(end_time - timedelta(days=1)):end_time],
-    "Weekly": st.session_state.nisep_df.loc[(end_time - timedelta(days=7)):end_time],
-    "Monthly": st.session_state.nisep_df.loc[(end_time - timedelta(days=30)):end_time],
+intervals = {
+    "Daily": end_time - timedelta(days=1),
+    "Weekly": end_time - timedelta(days=7),
+    "Monthly": end_time - timedelta(days=30),
 }
 
-# --- Replace Zeros with NaN (None) ---
-for interval, data in data_intervals.items():
-    data.replace(0, pd.NA, inplace=True)
+missing_data_df = pd.DataFrame({
+    interval: st.session_state.nisep_df.loc[start:end_time].replace(0, pd.NA).apply(calculate_missing_data_percentage)
+    for interval, start in intervals.items()
+}).fillna(0)
 
-# Store missing data percentages
-missing_data_percentages = {}
-
-# Calculate missing data percentages for each interval
-for interval, data in data_intervals.items():
-    missing_data_percentages[interval] = calculate_missing_data_percentage(data)
-
-# Convert to DataFrame
-missing_data_df = pd.DataFrame(missing_data_percentages).fillna(value=0)
-
-# --- Split Data by Site (Fix Site Detection) ---
 site_groups = {}
-
 for row_name in missing_data_df.index:
-    match = re.search(r"\((NISEP\d{2})\)", row_name)  # Extracts only NISEPXX format
+    match = re.search(r"\((NISEP\d{2})\)", row_name)
     if match:
-        site_id = match.group(1)  # Correctly extracts "NISEP01", "NISEP02", etc.
-        if site_id not in site_groups:
-            site_groups[site_id] = {}
-        site_groups[site_id][row_name] = missing_data_df.loc[row_name]
+        site_id = match.group(1)
+        site_groups.setdefault(site_id, {})[row_name] = missing_data_df.loc[row_name]
 
-# Convert to DataFrames
-for site_id, site_data in site_groups.items():
-    site_groups[site_id] = pd.DataFrame(site_data).T  # Transpose for better readability
-    site_groups[site_id] = site_groups[site_id].loc[~(site_groups[site_id] < 1).all(axis=1)].round(1)
+site_groups = {k: pd.DataFrame(v).T.round(1) for k, v in site_groups.items()}
 
-# --- Highlight Values > 30 in Red ---
-def highlight_high_values(val):
-    """Highlight values greater than 30 in red."""
-    return 'background-color: red' if float(val) > 30 else ''
-
-# --- Display Data ---
 with st.expander("📊 Missing Data Analysis by Site"):
-    # Create two-column layout
     col1, col2 = st.columns(2)
+    for idx, (site_id, df) in enumerate(site_groups.items()):
+        df_display = df.applymap(lambda x: f"{x:.1f}")
+        with (col1 if idx % 2 == 0 else col2):
+            st.subheader(f"📍 Site: {site_id}")
+            st.dataframe(df_display.style.applymap(lambda v: 'background-color: red' if float(v) > 30 else ''), height=350)
 
-    # Loop through the site_groups and display each site in alternating columns
-    site_list = list(site_groups.items())
-    for idx, (site_id, df) in enumerate(site_list):
-        # Ensure same vertical space by setting a fixed height for the DataFrame display
-        df = df.round(1)  # Make sure rounding happens before display
-
-        # Format the dataframe to remove unnecessary trailing zeros
-        df_display = df.applymap(lambda x: f"{x:.1f}" if pd.notnull(x) else "")  # Format to 1 decimal place
-
-        # Alternate between columns for each site
-        if idx % 2 == 0:
-            with col1:
-                st.subheader(f"📍 Site: {site_id}")
-                st.dataframe(df_display.style.applymap(highlight_high_values), height=350)  # Fixed height for uniform display
-        else:
-            with col2:
-                st.subheader(f"📍 Site: {site_id}")
-                st.dataframe(df_display.style.applymap(highlight_high_values), height=350)  # Fixed height for uniform display
-
-
-########################## COP CHECKS ####################################
-
-# --- Function to slice and aggregate data efficiently ---
+# --- COP Analysis ---
 def get_sliced_data(df, interval):
-    uk_tz = pytz.timezone("Europe/London")
-    end_time = datetime.now(uk_tz)
-    
-    start_times = {
-        "Daily": end_time - timedelta(days=1),
-        "Weekly": end_time - timedelta(days=7),
-        "Monthly": end_time - timedelta(days=30),
-    }
-    
-    sliced_df = df.loc[start_times[interval]:end_time]
-    
-    # Aggregate data: daily and weekly to daily, monthly to hourly
-    if interval in ["Monthly", "Weekly"]:
-        return sliced_df.resample('D').max()
-    elif interval == "Daily":
-        return sliced_df.resample('H').max()
-    
-    return sliced_df
+    """Extract data for given interval and resample appropriately."""
+    sliced_df = df.loc[intervals[interval]:end_time]
+    return sliced_df.resample('D' if interval in ["Monthly", "Weekly"] else 'H').max()
 
-# --- Function to highlight values outside 1-3 range ---
-def highlight_cop_values(val):
-    try:
-        val = float(val)
-        if float(val) < 1 or float(val) > 6:
-            return 'background-color: red'
-    except ValueError:
-        return 'background-color: red' if val is None else ''
-    return ''
-
-# --- COP Analysis Expander ---
 with st.expander("⚡ COP Analysis", expanded=False):
-    # Use the cached data and slice instead of refetching
-    data_intervals = {interval: get_sliced_data(st.session_state.nisep_df, interval) for interval in ["Daily", "Weekly", "Monthly"]}
-    
     cop_data = pd.DataFrame()
     heat_diff_data = pd.DataFrame()
     consumption_diff_data = pd.DataFrame()
-    
-    for interval, data in data_intervals.items():
-        if "datetime" in data.columns:
-            data = data.drop(columns=['datetime'])  # Drop datetime if present
-        
-        interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(data)
-        interval_cop = interval_cop.rename(columns={"COP": interval})
-        interval_heat_diff = interval_heat_diff.rename(columns={"Heat Diff": interval})
-        interval_consumption_diff = interval_consumption_diff.rename(columns={"Consumption Diff": interval})
 
-        if cop_data.empty:
-            cop_data = interval_cop
-            heat_diff_data = interval_heat_diff
-            consumption_diff_data = interval_consumption_diff
-        else:
-            cop_data = cop_data.merge(interval_cop, left_index=True, right_index=True, how="outer")
-            heat_diff_data = heat_diff_data.merge(interval_heat_diff, left_index=True, right_index=True, how="outer")
-            consumption_diff_data = consumption_diff_data.merge(interval_consumption_diff, left_index=True, right_index=True, how="outer")
-    
-    st.title("📊 Heat Pump COP Analysis")
-    st.write("Below is the analysis for different time intervals:")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.subheader("Heat Diff")
-        st.dataframe(heat_diff_data.round(2),use_container_width=True)
-    
-    with col2:
-        st.subheader("Consumption Diff")
-        st.dataframe(consumption_diff_data.round(2),use_container_width=True)
-    
-    with col3:
-        st.subheader("COP")
-        st.dataframe(cop_data.applymap(lambda x: f"{x:.2f}" if pd.notnull(x) else "").style.applymap(highlight_cop_values),use_container_width=True)
-    
+    for interval in intervals.keys():
+        interval_df = get_sliced_data(st.session_state.nisep_df, interval)
+        interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(interval_df)
+        for df, name in [(interval_cop, "COP"), (interval_heat_diff, "Heat Diff"), (interval_consumption_diff, "Consumption Diff")]:
+            df.rename(columns={df.columns[0]: interval}, inplace=True)
+            cop_data, heat_diff_data, consumption_diff_data = [df if df.empty else df.merge(df, left_index=True, right_index=True, how="outer") for df in [cop_data, heat_diff_data, consumption_diff_data]]
+
+    st.subheader("📊 Heat Pump COP Analysis")
+    for col, title, df in zip(st.columns(3), ["Heat Diff", "Consumption Diff", "COP"], [heat_diff_data, consumption_diff_data, cop_data]):
+        with col:
+            st.subheader(title)
+            st.dataframe(df.style.applymap(lambda x: 'background-color: red' if float(x) < 1 or float(x) > 6 else ''), use_container_width=True)
