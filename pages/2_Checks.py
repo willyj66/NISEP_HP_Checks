@@ -24,13 +24,13 @@ password = st.secrets.get("Login", {}).get("Password", "")
 
 # Cache Lookup Data
 @st.cache_data
-def cache_lookup():
+def cache_nisep():
     lookup_df = getLookup(auth_url, username, password)
     end_time = datetime(*datetime.now().timetuple()[:3]) 
     start_time = end_time - timedelta(days=30)
     return lookup_df.siteNamespace.unique(), getTimeseries(end_time, start_time, None, None, auth_url, username, password)
 
-all_sites, st.session_state.nisep_df = cache_lookup()
+all_sites, st.session_state.nisep_df = cache_nisep()
 
 
 #################### TEMPERATURE CHECKS #######################
