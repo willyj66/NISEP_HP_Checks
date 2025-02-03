@@ -127,10 +127,11 @@ with st.expander("📊 Missing Data Analysis by Site"):
             st.dataframe(df_display.style.applymap(lambda v: 'background-color: red' if float(v) > 30 else ''), height=350)
 
 # --- COP Analysis ---
+
 def get_sliced_data(df, interval):
-    """Extract data for given interval and resample appropriately."""
+    """Extract data for given interval and resample appropriately, ignoring NaNs."""
     sliced_df = df.loc[intervals[interval]:end_time]
-    return sliced_df.resample('D' if interval in ["Monthly", "Weekly"] else 'H').max()
+    return sliced_df.resample('D' if interval in ["Monthly", "Weekly"] else 'H').agg(lambda x: x.dropna().max())
 
 with st.expander("⚡ COP Analysis", expanded=False):
     cop_data = pd.DataFrame()
