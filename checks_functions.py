@@ -81,20 +81,12 @@ def calculate_cop(data):
             consumption_column = column.replace('Output Heat Energy', 'ASHP Consumption Energy')
             if consumption_column in data.columns:
                 site_id = column.split('(')[-1].strip(')')  # Extract site ID
-                
-                # Get first and last non-null values for both columns
-                heat_series = data[column].dropna()
-                consumption_series = data[consumption_column].dropna()
-                
-                if len(heat_series) > 1 and len(consumption_series) > 1:
-                    #st.text(heat_series)
-                    heat_diff.loc[site_id, 'Heat Diff'] = heat_series.iloc[-1] - heat_series.iloc[0]
-                    consumption_diff.loc[site_id, 'Consumption Diff'] = consumption_series.iloc[-1] - consumption_series.iloc[0]
-                    
-                    # Calculate COP, avoid division by zero
-                    if consumption_diff.loc[site_id, 'Consumption Diff'] != 0:
-                        cop.loc[site_id, 'COP'] = heat_diff.loc[site_id, 'Heat Diff'] / consumption_diff.loc[site_id, 'Consumption Diff']
-                    else:
-                        cop.loc[site_id, 'COP'] = None  # Avoid division by zero
-    
+
+                # Compute differences
+                heat_diff.loc[site_id, 'Heat Diff'] = data[column].iloc[-1] - data[column].iloc[0]
+                consumption_diff.loc[site_id, 'Consumption Diff'] = data[consumption_column].iloc[-1] - data[consumption_column].iloc[0]
+
+                # Calculate COP
+                cop.loc[site_id, 'COP'] = heat_diff.loc[site_id, 'Heat Diff'] / consumption_diff.loc[site_id, 'Consumption Diff']
+
     return cop, heat_diff, consumption_diff
