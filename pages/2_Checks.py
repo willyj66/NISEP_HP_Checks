@@ -133,19 +133,32 @@ def get_sliced_data(df, interval):
     sliced_df = df.loc[intervals[interval]:end_time]
     return sliced_df.resample('D' if interval in ["Monthly", "Weekly"] else 'H').agg(lambda x: x.dropna().max())
 
-with st.expander("⚡ COP Analysis", expanded=False):
+with st.expander("⚡ COP Analysis", expanded=False): 
     cop_data = pd.DataFrame()
     heat_diff_data = pd.DataFrame()
     consumption_diff_data = pd.DataFrame()
 
     for interval in intervals.keys():
+        # Get the sliced data for the current interval
         interval_df = get_sliced_data(st.session_state.nisep_df, interval)
-        interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(interval_df)
         
-        for df, name in [(interval_cop, "COP"), (interval_heat_diff, "Heat Diff"), (interval_consumption_diff, "Consumption Diff")]:
-            df.rename(columns={df.columns[0]: interval}, inplace=True)
-            cop_data, heat_diff_data, consumption_diff_data = [df if df.empty else df.merge(df, left_index=True, right_index=True, how="outer") for df in [cop_data, heat_diff_data, consumption_diff_data]]
-    st.dataframe(cop_data)
+        # Calculate the COP, heat difference, and consumption difference for the current interval
+        interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(interval_df)
+
+        # Renaming the columns to match the interval (adding the interval as a column name)
+        interval_cop.rename(columns={interval_cop.columns[0]: interval}, inplace=True)
+        interval_heat_diff.rename(columns={interval_heat_diff.columns[0]: interval}, inplace=True)
+        interval_consumption_diff.rename(columns={interval_consumption_diff.columns[0]: interval}, inplace=True)
+
+        # Merge with the existing data, if not empty, otherwise just assign the new data
+        if not interval_cop.empty:
+            cop_data = cop_data.merge(interval_cop, left_index=True, right_index=True, how="outer") if not cop_data.empty else interval_cop
+        if not interval_heat_diff.empty:
+            heat_diff_data = heat_diff_data.merge(interval_heat_diff, left_index=True, right_index=True, how="outer") if not heat_diff_data.empty else interval_heat_diff
+        if not interval_consumption_diff.empty:
+            consumption_diff_data = consumption_diff_data.merge(interval_consumption_diff, left_index=True, right_index=True, how="outer") if not consumption_diff_data.empty else interval_consumption_diff
+
+    # Display the final results for COP analysis
     st.subheader("📊 Heat Pump COP Analysis")
     for col, title, df in zip(st.columns(3), ["Heat Diff", "Consumption Diff", "COP"], [heat_diff_data, consumption_diff_data, cop_data]):
         with col:
