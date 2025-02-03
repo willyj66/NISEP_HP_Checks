@@ -225,7 +225,7 @@ with st.expander("📊 Missing Data Analysis by Site"):
 # --- Function to slice and aggregate data efficiently ---
 def get_sliced_data(df, interval):
     uk_tz = pytz.timezone("Europe/London")
-    end_time = datetime.now(uk_tz).replace(hour=0, minute=0, second=0, microsecond=0)
+    end_time = datetime.now(uk_tz)
     
     start_times = {
         "Daily": end_time - timedelta(days=1),
