@@ -105,7 +105,8 @@ if update_button:  # Only update the graph when the button is pressed
                         y=1,              # Align it to the top
                         xanchor="left",   # Anchor it from the left
                         yanchor="top"     # Anchor it from the top
-                    )
+                    ),
+                    hoverlabel_namelength=-1
                 )
                 st.plotly_chart(fig, use_container_width=True)
             else:
