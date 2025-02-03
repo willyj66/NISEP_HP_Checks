@@ -219,7 +219,10 @@ with st.expander("📊 Missing Data Analysis by Site"):
                 st.subheader(f"📍 Site: {site_id}")
                 st.dataframe(df_display.style.applymap(highlight_high_values), height=350)  # Fixed height for uniform display
 
-# --- Function to slice data efficiently ---
+
+########################## COP CHECKS ####################################
+
+# --- Function to slice and aggregate data efficiently ---
 def get_sliced_data(df, interval):
     uk_tz = pytz.timezone("Europe/London")
     end_time = datetime.now(uk_tz).replace(hour=0, minute=0, second=0, microsecond=0)
@@ -230,7 +233,15 @@ def get_sliced_data(df, interval):
         "Monthly": end_time - timedelta(days=30),
     }
     
-    return df.loc[start_times[interval]:end_time]
+    sliced_df = df.loc[start_times[interval]:end_time]
+    
+    # Aggregate data: daily and weekly to daily, monthly to hourly
+    if interval in ["Daily", "Weekly"]:
+        return sliced_df.resample('D').mean()
+    elif interval == "Monthly":
+        return sliced_df.resample('H').mean()
+    
+    return sliced_df
 
 # --- Function to highlight values outside 1-3 range ---
 def highlight_cop_values(val):
