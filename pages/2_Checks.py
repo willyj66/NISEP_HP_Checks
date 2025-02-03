@@ -130,7 +130,7 @@ with st.expander("📊 Missing Data Analysis by Site"):
 def get_sliced_data(df, interval):
     """Extract data for given interval and resample appropriately."""
     sliced_df = df.loc[intervals[interval]:end_time]
-    return sliced_df.resample('D' if interval in ["Monthly", "Weekly"] else 'H').max(skipna=True)
+    return sliced_df.resample('D' if interval in ["Monthly", "Weekly"] else 'H').max()
 
 with st.expander("⚡ COP Analysis", expanded=False):
     cop_data = pd.DataFrame()
