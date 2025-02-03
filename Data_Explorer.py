@@ -20,7 +20,6 @@ password = st.secrets.get("Login", {}).get("Password", "")
 @st.cache_data
 def cache_lookup():
     lookup_df = getLookup(auth_url, username, password)
-    st.dataframe(lookup_df)
     return lookup_df.siteNamespace.unique()
 
 all_sites = cache_lookup()
