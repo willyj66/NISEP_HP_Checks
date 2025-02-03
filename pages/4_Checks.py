@@ -279,8 +279,3 @@ with st.expander("⚡ COP Analysis", expanded=False):
     with col3:
         st.subheader("COP")
         st.dataframe(cop_data)
-    
-    with st.expander("🗂️ Show Raw Data"):
-        for interval, data in data_intervals.items():
-            st.write(f"**{interval} Data**")
-            st.dataframe(data)
