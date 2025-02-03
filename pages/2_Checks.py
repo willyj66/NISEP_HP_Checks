@@ -236,9 +236,9 @@ def get_sliced_data(df, interval):
     sliced_df = df.loc[start_times[interval]:end_time]
     
     # Aggregate data: daily and weekly to daily, monthly to hourly
-    if interval in ["Daily", "Weekly"]:
+    if interval in ["Monthly", "Weekly"]:
         return sliced_df.resample('D').max()
-    elif interval == "Monthly":
+    elif interval == "daily":
         return sliced_df.resample('H').max()
     
     return sliced_df
