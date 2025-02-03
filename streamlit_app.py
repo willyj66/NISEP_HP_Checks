@@ -72,9 +72,6 @@ if update_button:  # Only update the graph when the button is pressed
         if df.empty:
             st.warning("No data available for the selected parameters.")
         else:
-            # Ensure 'datetime' is in proper format
-            df['datetime'] = pd.to_datetime(df['datetime'])
-
             # --- Main Content ---
             st.title("📊 NISEP Time Series Data")
 
