@@ -255,9 +255,6 @@ def highlight_cop_values(val):
 
 # --- COP Analysis Expander ---
 with st.expander("⚡ COP Analysis", expanded=False):
-    st.sidebar.title("Controls")
-    averaging = st.sidebar.selectbox("Averaging Type", ['max', 'min', 'average'])
-    
     # Use the cached data and slice instead of refetching
     data_intervals = {interval: get_sliced_data(st.session_state.nisep_df, interval) for interval in ["Daily", "Weekly", "Monthly"]}
     
