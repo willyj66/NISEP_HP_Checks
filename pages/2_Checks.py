@@ -175,7 +175,7 @@ with st.expander("⚡ COP Analysis", expanded=False):
         
         # Calculate the COP, heat difference, and consumption difference for the current interval
         interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(interval_df)
-        st.dataframe(interval_cop)
+        st.dataframe(interval_heat_diff)
         # Renaming the columns to match the interval (adding the interval as a column name)
         interval_cop.rename(columns={interval_cop.columns[0]: interval}, inplace=True)
         interval_heat_diff.rename(columns={interval_heat_diff.columns[0]: interval}, inplace=True)
