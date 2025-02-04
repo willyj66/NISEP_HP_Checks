@@ -162,7 +162,7 @@ with st.expander("⚡ COP Analysis", expanded=False):
     for col, title, df in zip(st.columns(3), ["Heat Diff", "Consumption Diff", "COP"], [heat_diff_data, consumption_diff_data, cop_data]):
         with col:
             st.subheader(title)
-        
+    
             # Apply styles and format the values based on the DataFrame type
             if title == "Heat Diff":
                 # Format numbers and handle None/NaN
@@ -171,12 +171,12 @@ with st.expander("⚡ COP Analysis", expanded=False):
             elif title == "Consumption Diff":
                 # Format numbers and handle None/NaN
                 styled_df = df.applymap(lambda x: f"{x:.0f}" if pd.notna(x) else '').style.applymap(
-                    lambda x: 'background-color: yellow' if (pd.isna(x) or (x != '' and float(x) <= 1)) else '', subset=pd.IndexSlice[:, :])
+                    lambda x: 'background-color: red' if (pd.isna(x) or (x != '' and float(x) <= 1)) else '', subset=pd.IndexSlice[:, :])
             elif title == "COP":
                 # Format numbers and handle None/NaN
                 styled_df = df.applymap(lambda x: f"{x:.2f}" if pd.notna(x) else '').style.applymap(
-                    lambda x: 'background-color: red' if (pd.isna(x) or (x == '' or (x != '' and (float(x) < 1 or float(x) > 6)))) else '', subset=pd.IndexSlice[:, :])
-        
+                    lambda x: 'background-color: red' if (pd.isna(x) or x=='' or (x != '' and (float(x) < 1 or float(x) > 6))) else '', subset=pd.IndexSlice[:, :])
+    
             # Display the styled dataframe
             st.dataframe(styled_df, use_container_width=True)
     
