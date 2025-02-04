@@ -1,7 +1,6 @@
 import pandas as pd
 from datetime import datetime, timedelta
 import pytz
-import streamlit as st
 
 def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subsample_freq='10min'):
     """
