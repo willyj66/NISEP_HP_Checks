@@ -177,9 +177,9 @@ with st.expander("⚡ COP Analysis", expanded=False):
         interval_cop, interval_heat_diff, interval_consumption_diff = calculate_cop(interval_df)
         st.dataframe(interval_heat_diff)
         # Renaming the columns to match the interval (adding the interval as a column name)
-        interval_cop.rename(columns={interval_cop.columns[0]: interval}, inplace=True)
-        interval_heat_diff.rename(columns={interval_heat_diff.columns[0]: interval}, inplace=True)
-        interval_consumption_diff.rename(columns={interval_consumption_diff.columns[0]: interval}, inplace=True)
+        #interval_cop.rename(columns={interval_cop.columns[0]: interval}, inplace=True)
+        #interval_heat_diff.rename(columns={interval_heat_diff.columns[0]: interval}, inplace=True)
+        #interval_consumption_diff.rename(columns={interval_consumption_diff.columns[0]: interval}, inplace=True)
 
         # Merge with the existing data, if not empty, otherwise just assign the new data
         if not interval_cop.empty:
