@@ -161,7 +161,7 @@ with st.expander("⚡ COP Analysis", expanded=False):
             consumption_diff_data = consumption_diff_data.merge(interval_consumption_diff, left_index=True, right_index=True, how="outer") if not consumption_diff_data.empty else interval_consumption_diff
 
     st.subheader("📊 Heat Pump COP Analysis")
-    for col, title, df in zip(st.columns(3), ["Heat Diff", "Consumption Diff", "COP"], [heat_diff_data, consumption_diff_data, cop_data]):
+    for col, title, df in zip(st.columns(3), ["Heat Diff", "Consumption Diff", "COPH2"], [heat_diff_data, consumption_diff_data, cop_data]):
         with col:
             st.subheader(title)
         
