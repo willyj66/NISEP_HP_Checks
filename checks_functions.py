@@ -98,6 +98,6 @@ def calculate_cop(data):
                 if consumption_diff.loc[site_id, 'Consumption Diff'] != 0:
                     cop.loc[site_id, 'COP'] = heat_diff.loc[site_id, 'Heat Diff'] / consumption_diff.loc[site_id, 'Consumption Diff']
                 else:
-                    cop.loc[site_id, 'COP'] = None  # Avoid division by zero
+                    cop.loc[site_id, 'COP'] = heat_diff.loc[site_id, 'Heat Diff']*None  # Avoid division by zero
 
     return cop, heat_diff, consumption_diff
