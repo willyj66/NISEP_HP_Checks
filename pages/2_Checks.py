@@ -116,9 +116,11 @@ for row_name in missing_data_df.index:
         site_id = match.group(1)
         site_groups.setdefault(site_id, {})[row_name] = missing_data_df.loc[row_name]
 
-#Transpose, remove complete rows and round to 1 decimal
-site_groups = {k: pd.DataFrame(v).T.loc[~(site_groups[site_id].eq(0).all(axis=1))].round(1) for k, v in site_groups.items()}
-
+# Transpose, remove rows where all values are ≤ 1, and round to 1 decimal
+site_groups = {
+    k: pd.DataFrame(v).T.loc[~(pd.DataFrame(v).T.le(1).all(axis=1))].round(1)
+    for k, v in site_groups.items()
+}
 with st.expander("📊 Missing Data Analysis by Site"):
     col1, col2 = st.columns(2)
     for idx, (site_id, df) in enumerate(site_groups.items()):
