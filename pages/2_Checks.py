@@ -1,6 +1,6 @@
 import streamlit as st
 from getNISEPdata import getTimeseries, getLookup
-from checks_functions import process_temperature_and_delta_t_data#, calculate_cop
+from checks_functions import process_temperature_and_delta_t_data, calculate_cop
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 import pandas as pd
@@ -132,37 +132,6 @@ def get_sliced_data(df, interval):
     """Extract data for given interval and resample appropriately, ignoring NaNs."""
     sliced_df = df.loc[intervals[interval]:end_time]
     return sliced_df.resample('D' if interval in ["Monthly", "Weekly"] else 'H').agg(lambda x: x.dropna().max())
-
-
-def calculate_cop(data):
-    cop = pd.DataFrame()
-    heat_diff = pd.DataFrame()
-    consumption_diff = pd.DataFrame()
-
-    for column in data.columns:
-        if 'Output Heat Energy' in column:
-            consumption_column = column.replace('Output Heat Energy', 'ASHP Consumption Energy')
-            if consumption_column in data.columns:
-                site_id = column.split('(')[-1].strip(')')  # Extract site ID
-                
-                # Get first and last non-null values for both columns
-                heat_series = data[column].dropna().sort_index()
-                consumption_series = data[consumption_column].dropna().sort_index()
-
-                if len(heat_series) < 2 or len(consumption_series) < 2:
-                    continue  # Skip sites with insufficient data
-                
-                # Compute differences
-                heat_diff.loc[site_id, 'Heat Diff'] = heat_series.iloc[-1] - heat_series.iloc[0]
-                consumption_diff.loc[site_id, 'Consumption Diff'] = consumption_series.iloc[-1] - consumption_series.iloc[0]
-
-                # Calculate COP, avoid division by zero
-                if consumption_diff.loc[site_id, 'Consumption Diff'] != 0:
-                    cop.loc[site_id, 'COP'] = heat_diff.loc[site_id, 'Heat Diff'] / consumption_diff.loc[site_id, 'Consumption Diff']
-                else:
-                    cop.loc[site_id, 'COP'] = None  # Avoid division by zero
-
-    return cop, heat_diff, consumption_diff
 
 with st.expander("⚡ COP Analysis", expanded=False): 
     cop_data = pd.DataFrame()

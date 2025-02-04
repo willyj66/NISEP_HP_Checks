@@ -72,6 +72,7 @@ def process_temperature_and_delta_t_data(df, past_days, bounds, site_names, subs
     return result
 
 
+
 def calculate_cop(data):
     cop = pd.DataFrame()
     heat_diff = pd.DataFrame()
